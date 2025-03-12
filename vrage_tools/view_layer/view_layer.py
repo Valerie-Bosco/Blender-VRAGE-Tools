@@ -27,12 +27,12 @@ class VRT_ViewLayer(PropertyGroup):
 
     use_uv_grid: BoolProperty(
         name='Toggle UV Grid',
-        description='Show VRage material UV Grid overlay',
+        description='Show VRAGE material UV Grid overlay',
         default=False,
         )
 
     use_color_grid: BoolProperty(
         name='Toggle Color Grid',
-        description='Show VRage material Color Grid overlay',
+        description='Show VRAGE material Color Grid overlay',
         default=False,
         )

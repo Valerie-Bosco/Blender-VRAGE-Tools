@@ -5,8 +5,8 @@ from bpy.types import Panel
 
 class VRT_PT_Panel(Panel):
     bl_idname = 'VRT_PT_Panel'
-    bl_label = 'VRage Tools'
-    bl_category = 'VRage'
+    bl_label = 'VRAGE Tools'
+    bl_category = 'VRAGE'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_options = {'DEFAULT_CLOSED'}
@@ -118,7 +118,7 @@ class VRT_PT_Panel_subpanel_sections(Panel):
 class VRT_PT_Materials(Panel):
     bl_idname = 'VRT_PT_Materials'
     bl_label = 'Materials'
-    bl_category = 'VRage'
+    bl_category = 'VRAGE'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_options = {'DEFAULT_CLOSED'}
@@ -174,7 +174,7 @@ class VRT_PT_Materials_subpanel_uv(Panel):
 class VRT_PT_Export(Panel):
     bl_idname = 'VRT_PT_Export'
     bl_label = 'Quick Export'
-    bl_category = 'VRage'
+    bl_category = 'VRAGE'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_options = {'DEFAULT_CLOSED'}

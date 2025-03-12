@@ -50,7 +50,7 @@ class VRT_Scene(PropertyGroup):
 
     paint_color_ui: FloatVectorProperty(
         name='Paint Color',
-        description="Change display color of colorable VRage materials",
+        description="Change display color of colorable VRAGE materials",
         size=3,
         default=(0.5, 0.5, 0.5),
         subtype='COLOR',
@@ -63,7 +63,7 @@ class VRT_Scene(PropertyGroup):
 
     use_parallax_ui: BoolProperty(
         name="Toggle Parallax",
-        description="Enable VRage material parallax occlusion mapping",
+        description="Enable VRAGE material parallax occlusion mapping",
         default=True,
         update=update_use_parallax_ui
     )

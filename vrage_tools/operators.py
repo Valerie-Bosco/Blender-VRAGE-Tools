@@ -18,7 +18,7 @@ class VRT_OT_DummyOperator(Operator):
 
 class VRT_OT_ReLinkProjectMaterials(Operator):
     bl_idname = "scene.vrt_relink_project_materials"
-    bl_label = "Re-link VRage Project Materials"
+    bl_label = "Re-link VRAGE Project Materials"
     bl_description = "Link materials from asset library, delete unused materials slots and purge unused data"
 
     @classmethod
@@ -34,7 +34,7 @@ class VRT_OT_ReLinkProjectMaterials(Operator):
 class VRT_OT_ResetPaintColor(Operator):
     bl_idname = "scene.vrt_reset_paint_color"
     bl_label = "Reset Paint Color"
-    bl_description = "Reset VRage material paint color to Default"
+    bl_description = "Reset VRAGE material paint color to Default"
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
 
     def execute(self, context):

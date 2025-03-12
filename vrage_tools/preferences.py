@@ -26,8 +26,8 @@ class VRT_AddonPreferences(AddonPreferences):
 
     project_asset_lib: EnumProperty(
         items=items_project_asset_lib,
-        name="VRage Project Asset Library",
-        description="Asset library containing materials, etc. for your VRage project",
+        name="VRAGE Project Asset Library",
+        description="Asset library containing materials, etc. for your VRAGE project",
         update=update_project_asset_lib,
     ) # type: ignore
 
