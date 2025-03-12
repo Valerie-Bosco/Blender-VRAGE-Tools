@@ -6,7 +6,7 @@ from bpy.props import EnumProperty
 
 def items_project_asset_lib(self, context):
     asset_libraries = [
-        ("", "None", "", 0, 0),
+        ('0', "None", "", 0, 0),
     ]
     i = 1
     for lib in bpy.context.preferences.filepaths.asset_libraries:

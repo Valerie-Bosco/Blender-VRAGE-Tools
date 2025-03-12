@@ -46,7 +46,7 @@ class VRT_Section(PropertyGroup):
 class VRT_Scene(PropertyGroup):
     """Holder for VRT Scene properties"""
 
-    paint_color_ui = FloatVectorProperty(
+    paint_color_ui: FloatVectorProperty(
         name='Paint Color',
         description="Change display color of colorable VRage materials",
         size=3,
@@ -59,31 +59,31 @@ class VRT_Scene(PropertyGroup):
         update=update_paint_color_ui
         )
 
-    use_parallax_ui = BoolProperty(
+    use_parallax_ui: BoolProperty(
         name="Toggle Parallax",
         description="Enable VRage material parallax occlusion mapping",
         default=True,
         update=update_use_parallax_ui
     )
 
-    sections_list = CollectionProperty(
+    sections_list: CollectionProperty(
         type=VRT_Section
         )
 
-    sections_list_active_index = IntProperty()
+    sections_list_active_index: IntProperty()
 
-    export_name = StringProperty(
+    export_name: StringProperty(
         name="Block Base Name",
         description='Base name of block to export (e.g. "CargoContainer")'
     )
 
-    export_directory = StringProperty(
+    export_directory: StringProperty(
         name="Quick Export Directory",
         description='Root directory for exporting model. (parent directory of "NonFractured", "Fractured"...)',
         subtype='FILE_PATH'
     )
 
-    export_variant = EnumProperty(
+    export_variant: EnumProperty(
         items=[
             ('NON_FRACTURED', "Non-fractured", "Export as undamaged, base variant"),
             ('FRACTURED', "Fractured", "Export as fractured variant"),

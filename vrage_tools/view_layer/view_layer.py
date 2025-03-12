@@ -23,13 +23,13 @@ def view_layer_unregister():
 class VRT_ViewLayer(PropertyGroup):
     """Holder for VRT View Layer properties"""
 
-    use_uv_grid = BoolProperty(
+    use_uv_grid: BoolProperty(
         name='Toggle UV Grid',
         description='Show VRage material UV Grid overlay',
         default=False,
         )
 
-    use_color_grid = BoolProperty(
+    use_color_grid: BoolProperty(
         name='Toggle Color Grid',
         description='Show VRage material Color Grid overlay',
         default=False,
