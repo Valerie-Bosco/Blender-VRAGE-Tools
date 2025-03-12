@@ -11,14 +11,6 @@ from bpy.props      import (EnumProperty,
                             PointerProperty,
                             CollectionProperty)
 
-# Utils
-def scene_register():
-    bpy.types.Scene.vrt = PointerProperty(type=VRT_Scene)
-
-
-def scene_unregister():
-    del bpy.types.Scene.vrt
-
 
 # Update functions
 def update_paint_color_ui(self, context):
@@ -45,6 +37,12 @@ class VRT_Section(PropertyGroup):
 # Main class
 class VRT_Scene(PropertyGroup):
     """Holder for VRT Scene properties"""
+
+    def register():
+        bpy.types.Scene.vrt = PointerProperty(type=VRT_Scene)
+
+    def unregister():
+        del bpy.types.Scene.vrt
 
     paint_color_ui: FloatVectorProperty(
         name='Paint Color',

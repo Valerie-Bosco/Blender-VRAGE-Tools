@@ -10,18 +10,16 @@ from bpy.props      import (EnumProperty,
                             PointerProperty,
                             CollectionProperty)
 
-# Utils
-def view_layer_register():
-    bpy.types.ViewLayer.vrt = PointerProperty(type=VRT_ViewLayer)
-
-
-def view_layer_unregister():
-    del bpy.types.ViewLayer.vrt
-
 
 # Main class
 class VRT_ViewLayer(PropertyGroup):
     """Holder for VRT View Layer properties"""
+
+    def register():
+        bpy.types.ViewLayer.vrt = PointerProperty(type=VRT_ViewLayer)
+
+    def unregister():
+        del bpy.types.ViewLayer.vrt
 
     use_uv_grid: BoolProperty(
         name='Toggle UV Grid',

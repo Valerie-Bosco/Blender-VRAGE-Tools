@@ -69,13 +69,13 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    scene_register()
-    view_layer_register()
+    VRT_Scene.register()
+    VRT_ViewLayer.register()
 
 
 def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
 
-    scene_unregister()
-    view_layer_unregister()
+    VRT_Scene.unregister()
+    VRT_ViewLayer.unregister()
