@@ -37,7 +37,7 @@ class VRT_PT_Panel_subpanel_physics(Panel):
     @classmethod
     def poll(cls, context):
         return True
-    
+
     def draw_header(self, context):
         layout = self.layout
 
@@ -77,10 +77,10 @@ class VRT_PT_Panel_subpanel_sections(Panel):
         layout = self.layout
 
     def draw(self, context):
-        list_owner_path, list_prop_name = "scene.VRT_sections_list".rsplit('.', 1)
-        list_owner = context.path_resolve(list_owner_path) 
+        list_owner_path, list_prop_name = "scene.vrt.sections_list".rsplit('.', 1)
+        list_owner = context.path_resolve(list_owner_path)
 
-        index_owner_path, index_prop_name = "scene.VRT_sections_list_active_index".rsplit('.', 1)
+        index_owner_path, index_prop_name = "scene.vrt.sections_list_active_index".rsplit('.', 1)
         index_owner = context.path_resolve(index_owner_path)
 
         layout = self.layout
@@ -98,19 +98,19 @@ class VRT_PT_Panel_subpanel_sections(Panel):
         props = col.operator("scene.vrt_section_add", text="", icon='ADD')
 
         row = col.row()
-        # row.enabled = len(context.scene.VRT_sections_list) > 0
+        # row.enabled = len(context.scene.vrt.sections_list) > 0
         props = row.operator("scene.vrt_section_remove", text="", icon='REMOVE')
 
 
         # Draw Section action buttons
-        if len(context.scene.VRT_sections_list) > 0:
+        if len(context.scene.vrt.sections_list) > 0:
             row = layout.row()
             row_left = row.row(align=True)
             row_right = row.row(align=True)
 
             row_left.operator("object.vrt_section_assign")
             row_left.operator("object.vrt_section_remove")
-            
+
             row_right.operator("object.vrt_section_select")
             row_right.operator("object.vrt_section_deselect")
 
@@ -127,7 +127,7 @@ class VRT_PT_Materials(Panel):
     @classmethod
     def poll(cls, context):
         return True
-    
+
     def draw_header(self, context):
         layout = self.layout
 
@@ -138,10 +138,10 @@ class VRT_PT_Materials(Panel):
         row = layout.row(heading='', align=False)
         row.use_property_split = True
         row.alignment = 'EXPAND'
-        row.prop(context.scene, 'VRT_paint_color_ui', text='Paint Color')
+        row.prop(context.scene.vrt, 'paint_color_ui', text='Paint Color')
         row.operator('scene.vrt_reset_paint_color', text='', icon_value=715)
 
-        layout.prop(context.scene, 'VRT_use_parallax_ui', text="Parallax")
+        layout.prop(context.scene.vrt, 'use_parallax_ui', text="Parallax")
 
 class VRT_PT_Materials_subpanel_uv(Panel):
 
@@ -156,19 +156,19 @@ class VRT_PT_Materials_subpanel_uv(Panel):
     @classmethod
     def poll(cls, context):
         return True
-    
+
     def draw_header(self, context):
         layout = self.layout
 
-        layout.prop(context.view_layer, 'VRT_use_uv_grid')
+        layout.prop(context.view_layer.vrt, 'use_uv_grid')
 
     def draw(self, context):
         layout = self.layout
 
         row = layout.row(align=False, heading="")
         # row.enabled = context.view_layer['VRT_use_uv_grid']
-        
-        row.prop(context.view_layer, 'VRT_use_color_grid')
+
+        row.prop(context.view_layer.vrt, 'use_color_grid')
 
 
 class VRT_PT_Export(Panel):

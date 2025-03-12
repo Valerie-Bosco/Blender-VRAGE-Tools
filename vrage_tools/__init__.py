@@ -22,17 +22,29 @@ bl_info = {
     "category" : "Generic"
 }
 
+
 import bpy
-from . import auto_load
+from .utilities import auto_load
 from . import global_variables
 
+from .scene.scene               import scene_register, scene_unregister
+from .view_layer.view_layer     import view_layer_register, view_layer_unregister
+
+
 auto_load.init()
+
 
 def register():
     global_variables.create()
     auto_load.register()
-    
+
+    scene_register()
+    view_layer_register()
+
 
 def unregister():
     global_variables.destroy()
     auto_load.unregister()
+
+    scene_unregister()
+    view_layer_unregister()

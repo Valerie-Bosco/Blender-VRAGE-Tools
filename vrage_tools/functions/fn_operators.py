@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import bpy
-from .easybpy import *
+from ..utilities.easybpy import *
 
 from .fn_preferences import get_preferences
 
@@ -19,7 +19,7 @@ def op_fix_vrage_project_materials(self, context):
                 return True
         else:
             return False
-    
+
     ##### Remove unused slots
     scene_objects = bpy.context.scene.objects
     for obj in scene_objects:
@@ -32,14 +32,14 @@ def op_fix_vrage_project_materials(self, context):
         deselect_all_objects()
         select_object(obj)
         bpy.ops.object.material_slot_remove_unused()
-    
+
     ##### Find material .blend
     asset_libraries = bpy.context.preferences.filepaths.asset_libraries
     material_library_name = prefs.vrage_project_asset_lib
     for asset_lib in asset_libraries:
         if asset_lib.name != material_library_name:
             continue
-        
+
         library_path = Path(asset_lib.path)
 
         if not os.path.exists(library_path):
@@ -47,11 +47,11 @@ def op_fix_vrage_project_materials(self, context):
             return {'CANCELLED'}
 
         blend_files = [fp for fp in library_path.glob("**/*.blend") if fp.is_file()]
-        
+
         if blend_files == []:
             self.report({'ERROR'}, message='Asset library empty')
             return {'CANCELLED'}
-    
+
     ##### Append materials
     # Init list of material base names
     imported_material_names = []
@@ -71,21 +71,21 @@ def op_fix_vrage_project_materials(self, context):
                             continue
                     if compare_names(scene_material.name,external_material):
                         # Add material name to list
-                        materials_to_append.append(external_material)   
+                        materials_to_append.append(external_material)
             # Add the external material to the current scene
             for mat in materials_to_append:
                 print(f"Appending {mat}")
                 data_to.materials.append(mat)
             # Make names accessible outside of loop
             imported_material_names.append(materials_to_append)
-    
-    # ##### Rename materials      
+
+    # ##### Rename materials
     # for imported_material in data_to.materials:
     # #    imported_material.asset_clear()
     #     for mat_name in imported_material_names:
     #         if compare_names(imported_material.name,mat_name):
     #             imported_material.name = mat_name
-    
+
     ##### Replace materials
     # Go through all the objects in the current scene
     for obj in scene_objects:
@@ -96,7 +96,7 @@ def op_fix_vrage_project_materials(self, context):
             if old_material is None:
                 continue
             new_material = None
-            
+
             if old_material.name[:-4] in bpy.data.materials:
                 new_material = old_material.name[:-4]
             else:
@@ -111,7 +111,7 @@ def op_fix_vrage_project_materials(self, context):
             #     # If the material names match, use the external material
             #     if compare_names(slot_material.name,imported_material.name):
             #         obj.material_slots[index].material = imported_material
-    
+
     # Purge unused
     bpy.ops.outliner.orphans_purge(do_recursive=True)
     print("done")
@@ -125,11 +125,11 @@ def clean_names(objs):
                 continue
             if not obj.name[-3:].isdigit():
                 continue
-    
+
             init_name = obj.name
             new_name = obj.name[:-4]
             obj.name = new_name
-            # sometimes just setting the name doesn't work if there is a hidden object in the scene with that name. 
+            # sometimes just setting the name doesn't work if there is a hidden object in the scene with that name.
             # This addresses that problematic object directly and switches the names:
             if not obj.name == new_name:
                 bpy.data.objects[new_name].name = init_name
@@ -173,13 +173,13 @@ def export_variant_dir(variant) -> str:
             return "Fractured"
         case 'DEFORMED':
             return "Deformed"
-        
+
 def export_lod_suffix(lod):
     if lod:
         return f"_LOD{lod}"
     else:
         return ""
-    
+
 def export_fbx_quick(filepath):
     bpy.ops.export_scene.fbx(
     filepath=filepath,
@@ -194,7 +194,7 @@ def export_fbx_quick(filepath):
 
 def export_gltf_physics_invoke():
     bpy.ops.export_scene.gltf(
-            'INVOKE_DEFAULT', 
+            'INVOKE_DEFAULT',
             export_format = 'GLTF_SEPARATE',
             will_save_settings=False,
             use_selection=True,
@@ -211,7 +211,7 @@ def export_gltf_physics_invoke():
 
 def export_gltf_physics_quick(filepath):
     bpy.ops.export_scene.gltf(
-            filepath=filepath, 
+            filepath=filepath,
             export_format = 'GLTF_SEPARATE',
             will_save_settings=False,
             use_selection=True,

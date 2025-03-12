@@ -6,7 +6,7 @@ from bpy.props import EnumProperty
 from .functions.fn_preferences import *
 
 
-class SE_HKT_AddonPreferences(AddonPreferences):
+class VRT_AddonPreferences(AddonPreferences):
     bl_idname = __package__
 
     vrage_project_asset_lib: EnumProperty(
