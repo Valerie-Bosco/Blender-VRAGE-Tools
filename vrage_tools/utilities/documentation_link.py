@@ -7,7 +7,7 @@ from bpy.props              import StringProperty
 
 class VRT_OT_DocuLink(Operator):
     """Opens the relevant Space Engineers Wiki page, containing more usage information and / or tutorials"""
-    bl_idname = "wm.docu_link"
+    bl_idname = "wm.vrt_docu_link"
     bl_label = "Documentation Link"
     bl_options = {'REGISTER', 'UNDO'}
 
