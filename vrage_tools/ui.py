@@ -1,7 +1,8 @@
 import bpy
+
 from bpy.types import Panel
 
-
+from .utilities.documentation_link import display_docu_link
 
 class VRT_PT_Panel(Panel):
     bl_idname = 'VRT_PT_Panel'

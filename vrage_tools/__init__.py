@@ -25,12 +25,14 @@ bl_info = {
 
 import bpy
 
-from .operators                 import *
-from .preferences               import *
-from .ui                        import *
+from .operators                     import *
+from .preferences                   import *
+from .ui                            import *
 
-from .scene.scene               import *
-from .view_layer.view_layer     import *
+from .scene.scene                   import *
+from .view_layer.view_layer         import *
+from .utilities.documentation_link  import *
+
 
 classes = (
     VRT_AddonPreferences,
@@ -63,6 +65,7 @@ classes = (
     VRT_OT_Section_Deselect,
     VRT_OT_QuickExport,
     VRT_OT_QuickExportCollisions,
+    VRT_OT_DocuLink
 )
 
 def register():
