@@ -3,7 +3,7 @@ from pathlib import Path
 import bpy
 from ..utilities.easybpy import *
 
-from .fn_preferences import get_preferences
+from ..preferences import get_preferences
 
 
 def op_fix_vrage_project_materials(self, context):
@@ -35,7 +35,7 @@ def op_fix_vrage_project_materials(self, context):
 
     ##### Find material .blend
     asset_libraries = bpy.context.preferences.filepaths.asset_libraries
-    material_library_name = prefs.vrage_project_asset_lib
+    material_library_name = prefs.project_asset_lib
     for asset_lib in asset_libraries:
         if asset_lib.name != material_library_name:
             continue

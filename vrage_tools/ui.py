@@ -185,11 +185,11 @@ class VRT_PT_Export(Panel):
 
         col = layout.column(align=True)
         col.alignment = 'EXPAND'
-        col.prop(context.scene, "VRT_export_name", text="Name")
+        col.prop(context.scene.vrt, "export_name", text="Name")
         col.separator()
-        col.prop(context.scene, "VRT_export_directory", text="Directory")
+        col.prop(context.scene.vrt, "export_directory", text="Directory")
         col.separator()
-        col.prop(context.scene, "VRT_export_variant", text="Variant")
+        col.prop(context.scene.vrt, "export_variant", text="Variant")
 
         layout.label(text="Quick Export:", icon='EXPORT')
         grid = layout.grid_flow(row_major=True, columns=2, even_columns=True, even_rows=True, align=True)

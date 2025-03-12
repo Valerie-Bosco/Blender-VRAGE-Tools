@@ -3,7 +3,7 @@ import bpy
 from .utilities.easybpy import *
 from .functions.fn_operators import *
 from .functions.fn_ui import refresh_ui
-from .functions.fn_preferences import get_preferences
+from .preferences import get_preferences
 
 from bpy.types import Context, Operator
 
@@ -25,7 +25,7 @@ class VRT_OT_ReLinkProjectMaterials(Operator):
     def poll(cls, context):
         cls.poll_message_set("Asset library not set in add-on preferences")
         prefs = get_preferences()
-        return (prefs.vrage_project_asset_lib != "")
+        return (prefs.project_asset_lib != "")
 
     def execute(self, context):
         op_fix_vrage_project_materials(self, context)
@@ -330,7 +330,7 @@ class VRT_OT_QuickExport(Operator):
 
     @classmethod
     def poll(cls, context):
-        name_set = bool(context.scene.VRT_export_name) # name not ""
+        name_set = bool(context.scene.vrt.export_name) # name not ""
         dir_set = bool(context.scene.vrt.export_directory) # path not ""
         if dir_set: # if path is not empty string, check that it's valid
             dir_set = os.path.exists(context.scene.vrt.export_directory)
@@ -353,7 +353,7 @@ class VRT_OT_QuickExport(Operator):
             self.report(type={'WARNING'}, message="Select one or more objects")
             return {'CANCELLED'}
 
-        name = context.scene.VRT_export_name
+        name = context.scene.vrt.export_name
         dir = context.scene.vrt.export_directory
         var = context.scene.vrt.export_variant
         lod = self.export_lod
@@ -375,7 +375,7 @@ class VRT_OT_QuickExportCollisions(Operator):
 
     @classmethod
     def poll(cls, context):
-        name_set = bool(context.scene.VRT_export_name) # name not ""
+        name_set = bool(context.scene.vrt.export_name) # name not ""
         dir_set = bool(context.scene.vrt.export_directory) # path not ""
         if dir_set: # if path is not empty string, check that it's valid
             dir_set = os.path.exists(context.scene.vrt.export_directory)
@@ -415,7 +415,7 @@ class VRT_OT_QuickExportCollisions(Operator):
         # Invoke glTF export
         context.scene.msft_physics_exporter_props.enabled = True # Enable havok extention
 
-        name = context.scene.VRT_export_name
+        name = context.scene.vrt.export_name
         dir = context.scene.vrt.export_directory
         var = context.scene.vrt.export_variant
 
