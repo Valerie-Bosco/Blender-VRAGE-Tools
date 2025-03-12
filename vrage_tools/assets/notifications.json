@@ -1,0 +1,11 @@
+{
+    "ERROR": {
+        "E001": "This {} is a test {} error."
+    },
+    "WARNING": {
+        "W001": ""
+    },
+    "INFO": {
+        "I001": ""
+    }
+}
