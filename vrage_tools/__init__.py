@@ -22,17 +22,60 @@ bl_info = {
     "category" : "Generic"
 }
 
-import bpy
-from . import auto_load
-from . import global_variables
 
-auto_load.init()
+import bpy
+
+from .operators                 import *
+from .preferences               import *
+from .ui                        import *
+
+from .scene.scene               import *
+from .view_layer.view_layer     import *
+
+classes = (
+    VRT_AddonPreferences,
+
+    VRT_PT_Panel,
+    VRT_PT_Panel_subpanel_physics,
+    VRT_UL_sections,
+    VRT_PT_Panel_subpanel_sections,
+    VRT_PT_Materials,
+    VRT_PT_Export,
+
+    VRT_Section,
+    VRT_Scene,
+    VRT_ViewLayer,
+
+    VRT_OT_DummyOperator,
+    VRT_OT_ReLinkProjectMaterials,
+    VRT_OT_ResetPaintColor,
+    VRT_OT_CleanNames,
+    VRT_OT_AddRigidBody,
+    VRT_OT_ExportCollisions,
+    VTR_OT_LinkCollisionsToFracture,
+    VTR_OT_SelectLinkedCollisions,
+    VTR_OT_UnlinkCollisionsFractureCollisions,
+    VRT_OT_section_add,
+    VRT_OT_section_remove,
+    VRT_OT_Section_Assign,
+    VRT_OT_Section_Remove,
+    VRT_OT_Section_Select,
+    VRT_OT_Section_Deselect,
+    VRT_OT_QuickExport,
+    VRT_OT_QuickExportCollisions,
+)
 
 def register():
-    global_variables.create()
-    auto_load.register()
-    
+    for cls in classes:
+        bpy.utils.register_class(cls)
+
+    scene_register()
+    view_layer_register()
+
 
 def unregister():
-    global_variables.destroy()
-    auto_load.unregister()
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
+
+    scene_unregister()
+    view_layer_unregister()
