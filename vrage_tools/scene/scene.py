@@ -12,6 +12,8 @@ from bpy.props      import (EnumProperty,
                             CollectionProperty)
 
 
+from ..utilities.notifications  import display_notification
+
 # Update functions
 def update_paint_color_ui(self, context):
     updated_color = context.scene.vrt.paint_color_ui

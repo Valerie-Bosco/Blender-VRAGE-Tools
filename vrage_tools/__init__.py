@@ -31,7 +31,9 @@ from .ui                            import *
 
 from .scene.scene                   import *
 from .view_layer.view_layer         import *
+from .text.text                     import *
 from .utilities.documentation_link  import *
+from .utilities.notifications       import *
 
 
 classes = (
@@ -47,6 +49,8 @@ classes = (
     VRT_Section,
     VRT_Scene,
     VRT_ViewLayer,
+    VRT_Notification,
+    VRT_Text,
 
     VRT_OT_DummyOperator,
     VRT_OT_ReLinkProjectMaterials,
@@ -65,7 +69,10 @@ classes = (
     VRT_OT_Section_Deselect,
     VRT_OT_QuickExport,
     VRT_OT_QuickExportCollisions,
-    VRT_OT_DocuLink
+    VRT_OT_DocuLink,
+    VRT_OT_NotificationDisplay,
+    VRT_OT_DeleteNotification,
+    VRT_OT_ClearnNotification
 )
 
 def register():
@@ -74,6 +81,7 @@ def register():
 
     VRT_Scene.register()
     VRT_ViewLayer.register()
+    VRT_Text.register()
 
 
 def unregister():
@@ -82,3 +90,4 @@ def unregister():
 
     VRT_Scene.unregister()
     VRT_ViewLayer.unregister()
+    VRT_Text.unregister()
