@@ -7,7 +7,7 @@ from bpy.types              import Operator
 from bpy.props              import IntProperty
 
 from ..text.text            import get_blend_data
-
+from .generic               import wrap_text
 
 class VRT_OT_NotificationDisplay(Operator):
     """Displays a list of notifications from VRT"""
@@ -45,7 +45,6 @@ class VRT_OT_NotificationDisplay(Operator):
             split.operator('wm.clear_notification', icon='REMOVE')
             row = layout.row()
             split = row.split(factor=0.6)
-            split.operator('wm.export_log', icon='TEXT')
             split = row.split(factor=0.8)
             split.label(text="")
             split.prop(data.vrt, 'display_errors', icon='CANCEL', text="")
@@ -118,11 +117,6 @@ class VRT_OT_NotificationDisplay(Operator):
         split = layout.split(factor=0.75)
         split.label(text="Should no relevant error be listed here, please check the Blender System Console:")
         split.operator('wm.console_toggle', icon='CONSOLE')
-
-        if len(self.notifications_sorted) < 1:
-            split = layout.split(factor=0.75)
-            split.label(text="")
-            split.operator('wm.export_log', icon='TEXT')
 
 
 class VRT_OT_DeleteNotification(Operator):
