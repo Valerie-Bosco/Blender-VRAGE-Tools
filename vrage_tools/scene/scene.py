@@ -44,6 +44,10 @@ class VRT_Scene(PropertyGroup):
     def unregister():
         del bpy.types.Scene.vrt
 
+    version: IntProperty(
+        default=1
+    )
+
     paint_color_ui: FloatVectorProperty(
         name='Paint Color',
         description="Change display color of colorable VRage materials",

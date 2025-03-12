@@ -21,6 +21,10 @@ class VRT_ViewLayer(PropertyGroup):
     def unregister():
         del bpy.types.ViewLayer.vrt
 
+    version: IntProperty(
+        default=1
+    )
+
     use_uv_grid: BoolProperty(
         name='Toggle UV Grid',
         description='Show VRage material UV Grid overlay',
