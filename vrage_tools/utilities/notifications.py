@@ -164,20 +164,8 @@ def display_notification(context, notification_type: str, code: str, variables: 
 
     json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'notifications.json')
 
-    #with open(json_path) as json_file:
-    #    data = json.load(json_file)
-
-    data = {
-        "ERROR": {
-            "E001": "This {} is a test {} error."
-        },
-        "WARNING": {
-            "W001": ""
-        },
-        "INFO": {
-            "I001": ""
-        }
-    }
+    with open(json_path) as json_file:
+        data = json.load(json_file)
 
     text = data[notification_type][code]
     text = text.format(*variables)
