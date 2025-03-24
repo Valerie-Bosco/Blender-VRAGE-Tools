@@ -37,12 +37,6 @@ class VRT_Notification(PropertyGroup):
 class VRT_Text(PropertyGroup):
     """Holder for the various properties saved to the BLEND file"""
 
-    def register():
-        bpy.types.Text.vrt = PointerProperty(type=VRT_Text)
-
-    def unregister():
-        del bpy.types.Text.vrt
-
     version: IntProperty(
         default=0
     )

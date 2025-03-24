@@ -40,12 +40,6 @@ class VRT_Section(PropertyGroup):
 class VRT_Scene(PropertyGroup):
     """Holder for VRT Scene properties"""
 
-    def register():
-        bpy.types.Scene.vrt = PointerProperty(type=VRT_Scene)
-
-    def unregister():
-        del bpy.types.Scene.vrt
-
     version: IntProperty(
         default=1
     )

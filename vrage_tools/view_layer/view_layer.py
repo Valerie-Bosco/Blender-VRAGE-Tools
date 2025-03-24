@@ -15,12 +15,6 @@ from bpy.props      import (EnumProperty,
 class VRT_ViewLayer(PropertyGroup):
     """Holder for VRT View Layer properties"""
 
-    def register():
-        bpy.types.ViewLayer.vrt = PointerProperty(type=VRT_ViewLayer)
-
-    def unregister():
-        del bpy.types.ViewLayer.vrt
-
     version: IntProperty(
         default=1
     )

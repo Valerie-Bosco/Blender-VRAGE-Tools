@@ -79,15 +79,15 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    VRT_Scene.register()
-    VRT_ViewLayer.register()
-    VRT_Text.register()
+    bpy.types.Scene.vrt = PointerProperty(type=VRT_Scene)
+    bpy.types.ViewLayer.vrt = PointerProperty(type=VRT_ViewLayer)
+    bpy.types.Text.vrt = PointerProperty(type=VRT_Text)
 
 
 def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
 
-    VRT_Scene.unregister()
-    VRT_ViewLayer.unregister()
-    VRT_Text.unregister()
+    del bpy.types.Scene.vrt
+    del bpy.types.ViewLayer.vrt
+    del bpy.types.Text.vrt
