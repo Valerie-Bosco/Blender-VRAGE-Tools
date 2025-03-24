@@ -164,6 +164,8 @@ def export_variant_suffix(variant) -> str:
             return "_Fractured"
         case 'DEFORMED':
             return "_Deformed"
+        case 'NONE':
+            return ""
 
 def export_variant_dir(variant) -> str:
     match variant:
@@ -173,6 +175,8 @@ def export_variant_dir(variant) -> str:
             return "Fractured"
         case 'DEFORMED':
             return "Deformed"
+        case 'NONE': #should never happen, but adding it for completeness
+            return "None"
 
 def export_lod_suffix(lod):
     if lod:

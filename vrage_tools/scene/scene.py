@@ -90,7 +90,8 @@ class VRT_Scene(PropertyGroup):
         items=[
             ('NON_FRACTURED', "Non-fractured", "Export as undamaged, base variant"),
             ('FRACTURED', "Fractured", "Export as fractured variant"),
-            ('DEFORMED', "Deformed", "Export as deformed fractured variant")
+            ('DEFORMED', "Deformed", "Export as deformed fractured variant"),
+            ('NONE', "None", "Export directly into selected directory, without variant suffix")
             ],
         name="Export Variant",
         description="Variant of the block to export. Selects subdirectory in root directory"
