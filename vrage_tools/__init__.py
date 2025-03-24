@@ -43,6 +43,7 @@ classes = (
     VRT_PT_Panel_subpanel_physics,
     VRT_UL_sections,
     VRT_PT_Panel_subpanel_sections,
+    VRT_MT_Menu_subpanel_sections_more_options,
     VRT_PT_Materials,
     VRT_PT_Export,
 
@@ -67,6 +68,7 @@ classes = (
     VRT_OT_Section_Remove,
     VRT_OT_Section_Select,
     VRT_OT_Section_Deselect,
+    VRT_OT_Section_Repopulate_List,
     VRT_OT_QuickExport,
     VRT_OT_QuickExportCollisions,
     VRT_OT_DocuLink,

@@ -1,6 +1,6 @@
 import bpy
 
-from bpy.types import Panel
+from bpy.types import Panel, Menu
 
 from .utilities.documentation_link import display_docu_link
 
@@ -97,13 +97,11 @@ class VRT_PT_Panel_subpanel_sections(Panel):
             index_owner, index_prop_name,
         )
         # Draw Collection list buttons
-        col = row.column()
+        col = row.column(align=True)
         props = col.operator("scene.vrt_section_add", text="", icon='ADD')
-
-        row = col.row()
-        # row.enabled = len(context.scene.vrt.sections_list) > 0
-        props = row.operator("scene.vrt_section_remove", text="", icon='REMOVE')
-
+        props = col.operator("scene.vrt_section_remove", text="", icon='REMOVE')
+        col.separator(factor=1.0)
+        col.menu('VRT_MT_Menu_subpanel_sections_more_options', text="", icon='DOWNARROW_HLT')
 
         # Draw Section action buttons
         if len(context.scene.vrt.sections_list) > 0:
@@ -116,6 +114,18 @@ class VRT_PT_Panel_subpanel_sections(Panel):
 
             row_right.operator("object.vrt_section_select")
             row_right.operator("object.vrt_section_deselect")
+
+class VRT_MT_Menu_subpanel_sections_more_options(Menu):
+    bl_idname = 'VRT_MT_Menu_subpanel_sections_more_options'
+    bl_label = 'More Options'
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("scene.vrt_section_repopulate_list", text="Repopulate List", icon='FILE_REFRESH')
 
 
 class VRT_PT_Materials(Panel):

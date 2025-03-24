@@ -58,7 +58,7 @@ class VRT_OT_CleanNames(Operator):
 
         return {'FINISHED'}
 
-
+#region Collisions
 class VRT_OT_AddRigidBody(Operator):
     bl_idname = "scene.vrt_add_rigid_body"
     bl_label = "Add Rigid Body"
@@ -188,7 +188,8 @@ class VTR_OT_UnlinkCollisionsFractureCollisions(Operator):
         refresh_ui(self, context)
         return {'FINISHED'}
 
-
+#endregion
+#region Sections
 class VRT_OT_section_add(Operator):
     bl_idname = "scene.vrt_section_add"
     bl_label = "Add Section"
@@ -319,7 +320,33 @@ class VRT_OT_Section_Deselect(Operator):
 
         return {'FINISHED'}
 
+class VRT_OT_Section_Repopulate_List(Operator):
+    bl_idname = "scene.vrt_section_repopulate_list"
+    bl_label = "Repopulate"
+    bl_description = "Repopulate sections list with existing scene items"
+    bl_options = {"REGISTER", "UNDO"}
 
+    def execute(self, context):
+        sections_list = context.scene.vrt.sections_list
+        section_names = [a.name for a in sections_list]
+        scene_objs = context.scene.objects
+        
+        for obj in scene_objs:
+            if not 'SECTION' in obj:
+                continue
+            section_name = obj['SECTION']
+            if section_name in section_names:
+                continue
+            sections_list.add()
+            sections_list[-1].name = section_name
+            sections_list = context.scene.vrt.sections_list
+            section_names = [a.name for a in sections_list]
+        
+        refresh_ui(self, context)
+        return {'FINISHED'}
+
+#endregion
+#region Quick Export
 class VRT_OT_QuickExport(Operator):
     bl_idname = "scene.vrt_quick_export"
     bl_label = "Quick Export"
@@ -432,3 +459,4 @@ class VRT_OT_QuickExportCollisions(Operator):
 
         export_gltf_physics_quick(filepath)
         return {'FINISHED'}
+#endregion
