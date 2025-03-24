@@ -1,5 +1,6 @@
 import bpy
 import mathutils
+import os
 
 from bpy.types      import PropertyGroup
 from bpy.props      import (EnumProperty,
@@ -24,6 +25,9 @@ def update_use_parallax_ui(self, context):
      use_parallax = context.scene.vrt.use_parallax_ui
      context.view_layer['VRT_disable_parallax'] = bool(not use_parallax)
 
+def update_export_path_ui(self, context):
+    context.scene.vrt.export_directory = os.path.abspath(context.scene.vrt.export_directory)
+
 
 # Collection properties
 class VRT_Section(PropertyGroup):
@@ -33,7 +37,7 @@ class VRT_Section(PropertyGroup):
 
     name: StringProperty(
         default="Section"
-    )
+    ) # type: ignore
 
 
 # Main class
@@ -42,7 +46,7 @@ class VRT_Scene(PropertyGroup):
 
     version: IntProperty(
         default=1
-    )
+    ) # type: ignore
 
     paint_color_ui: FloatVectorProperty(
         name='Paint Color',
@@ -55,31 +59,32 @@ class VRT_Scene(PropertyGroup):
         step=3,
         precision=6,
         update=update_paint_color_ui
-        )
+        ) # type: ignore
 
     use_parallax_ui: BoolProperty(
         name="Toggle Parallax",
         description="Enable VRAGE material parallax occlusion mapping",
         default=True,
         update=update_use_parallax_ui
-    )
+    ) # type: ignore
 
     sections_list: CollectionProperty(
         type=VRT_Section
-        )
+        ) # type: ignore
 
-    sections_list_active_index: IntProperty()
+    sections_list_active_index: IntProperty() # type: ignore
 
     export_name: StringProperty(
         name="Block Base Name",
         description='Base name of block to export (e.g. "CargoContainer")'
-    )
+    ) # type: ignore
 
     export_directory: StringProperty(
         name="Quick Export Directory",
         description='Root directory for exporting model. (parent directory of "NonFractured", "Fractured"...)',
-        subtype='FILE_PATH'
-    )
+        subtype='FILE_PATH',
+        update = update_export_path_ui
+    ) # type: ignore
 
     export_variant: EnumProperty(
         items=[
@@ -89,4 +94,4 @@ class VRT_Scene(PropertyGroup):
             ],
         name="Export Variant",
         description="Variant of the block to export. Selects subdirectory in root directory"
-    )
+    ) # type: ignore
