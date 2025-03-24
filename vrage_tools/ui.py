@@ -26,7 +26,7 @@ class VRT_PT_Panel(Panel):
         layout.operator('scene.vrt_relink_project_materials',text="Fix Project Materials", icon='MATERIAL')
         layout.operator("scene.vrt_clean_names", text="Clean Names", icon='SORTALPHA')
 
-        layout.operator("wm.notification_display", icon='INFO')
+        layout.operator("wm.vrt_notification_display", icon='INFO')
 
 class VRT_PT_Panel_subpanel_physics(Panel):
     bl_idname = 'VRT_PT_Panel_subpanel_physics'
