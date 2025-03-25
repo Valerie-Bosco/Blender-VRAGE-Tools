@@ -35,8 +35,16 @@ from .text.text                     import *
 from .utilities.documentation_link  import *
 from .utilities.notifications       import *
 
+# imports for MSFT_Physics module
+from .utilities.MSFT_Physics        import (MSFTPhysicsExporterProperties, 
+                                            MSFTPhysicsImporterProperties,
+                                            MSFTPhysicsSceneAdditionalSettings,
+                                            MSFTPhysicsBodyAdditionalSettings,
+                                            )
+from io_scene_gltf2 import exporter_extension_layout_draw
 
 classes = (
+    # VRAGE Tools classes
     VRT_AddonPreferences,
 
     VRT_PT_Panel,
@@ -74,22 +82,67 @@ classes = (
     VRT_OT_DocuLink,
     VRT_OT_NotificationDisplay,
     VRT_OT_DeleteNotification,
-    VRT_OT_ClearnNotification
+    VRT_OT_ClearnNotification,
+
+    # MSFT_Physics classes
+    MSFTPhysicsExporterProperties, 
+    MSFTPhysicsImporterProperties,
+    MSFTPhysicsSceneAdditionalSettings,
+    MSFTPhysicsBodyAdditionalSettings,
 )
+
+
+def draw_export(context, layout):
+    exportProps = bpy.context.scene.msft_physics_exporter_props
+    # header, body = layout.panel(
+    #     "VRT_Havok_physics_exporter", default_closed=False
+    # )
+    layout.use_property_split = False
+    layout.prop(exportProps, "enabled")
+    layout.active = exportProps.enabled
+
+
+def draw_import(context, layout):
+    importProps = bpy.context.scene.msft_physics_importer_props
+    # header, body = layout.panel(
+    #     "VRT_Havok_physics_importer", default_closed=False
+    # )
+    layout.use_property_split = False
+    layout.prop(importProps, "enabled")
+    layout.active = importProps.enabled
+
+
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
+    # VRAGE Tools
     bpy.types.Scene.vrt = PointerProperty(type=VRT_Scene)
     bpy.types.ViewLayer.vrt = PointerProperty(type=VRT_ViewLayer)
     bpy.types.Text.vrt = PointerProperty(type=VRT_Text)
-
+    
+    # MSFT_Physics
+    bpy.types.Scene.msft_physics_exporter_props = bpy.props.PointerProperty(type=MSFTPhysicsExporterProperties)
+    bpy.types.Scene.msft_physics_importer_props = bpy.props.PointerProperty(type=MSFTPhysicsImporterProperties)
+    bpy.types.Scene.msft_physics_scene_viewer_props = bpy.props.PointerProperty(type=MSFTPhysicsSceneAdditionalSettings)
+    bpy.types.Object.msft_physics_extra_props = bpy.props.PointerProperty(type=MSFTPhysicsBodyAdditionalSettings)
+    exporter_extension_layout_draw['MSFT_Physics'] = draw_export
 
 def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
 
+    # VRAGE Tools properties
     del bpy.types.Scene.vrt
     del bpy.types.ViewLayer.vrt
     del bpy.types.Text.vrt
+    
+    # MSFT_Physics
+    del bpy.types.Scene.msft_physics_exporter_props
+    del bpy.types.Scene.msft_physics_scene_viewer_props
+    del bpy.types.Object.msft_physics_extra_props
+    del exporter_extension_layout_draw['MSFT_Physics']
+
+# glTF extension is created after register()/unregister() definitions
+from .utilities.MSFT_Physics import *

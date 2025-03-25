@@ -92,6 +92,7 @@ class VRT_OT_ExportCollisions(Operator):
 
     @classmethod
     def poll(cls, context):
+        return True
         cls.poll_message_set("MSFT_Physics module not installed")
         return ('MSFT_Physics' in context.preferences.addons.keys())
 
@@ -409,7 +410,7 @@ class VRT_OT_QuickExportCollisions(Operator):
         dir_set = bool(context.scene.vrt.export_directory) # path not ""
         if dir_set: # if path is not empty string, check that it's valid
             dir_set = os.path.exists(context.scene.vrt.export_directory)
-        physics_installed = ('MSFT_Physics' in context.preferences.addons.keys())
+        physics_installed = True #('MSFT_Physics' in context.preferences.addons.keys())
 
         poll_message = ""
         if not name_set:
