@@ -640,6 +640,50 @@ class MSFTPhysicsSettingsPanel(bpy.types.Panel):
 
 draw_handler = None #<todo.eoin Clean this up
 
+# region: register unregister
+from io_scene_gltf2 import exporter_extension_layout_draw, importer_extension_layout_draw
+
+MSFT_Physics_classes = (
+    MSFTPhysicsExporterProperties, 
+    MSFTPhysicsImporterProperties,
+    MSFTPhysicsSceneAdditionalSettings,
+    MSFTPhysicsBodyAdditionalSettings,
+)
+
+def draw_export(context, layout):
+    exportProps = bpy.context.scene.msft_physics_exporter_props
+    col = layout.column()
+    col.use_property_split = False
+    col.prop(exportProps, "enabled")
+
+def draw_import(context, layout):
+    importProps = bpy.context.scene.msft_physics_importer_props
+    col = layout.column()
+    col.use_property_split = False
+    col.prop(importProps, "enabled")
+
+def MSFT_Physics_register():
+    for cls in MSFT_Physics_classes:
+        bpy.utils.register_class(cls)
+    bpy.types.Scene.msft_physics_exporter_props = bpy.props.PointerProperty(type=MSFTPhysicsExporterProperties)
+    bpy.types.Scene.msft_physics_importer_props = bpy.props.PointerProperty(type=MSFTPhysicsImporterProperties)
+    bpy.types.Scene.msft_physics_scene_viewer_props = bpy.props.PointerProperty(type=MSFTPhysicsSceneAdditionalSettings)
+    bpy.types.Object.msft_physics_extra_props = bpy.props.PointerProperty(type=MSFTPhysicsBodyAdditionalSettings)
+    exporter_extension_layout_draw['MSFT_Physics'] = draw_export
+    importer_extension_layout_draw['MSFT_Physics'] = draw_import
+
+def MSFT_Physics_unregister():
+    del importer_extension_layout_draw['MSFT_Physics']
+    del exporter_extension_layout_draw['MSFT_Physics']
+    del bpy.types.Object.msft_physics_extra_props
+    del bpy.types.Scene.msft_physics_scene_viewer_props
+    del bpy.types.Scene.msft_physics_importer_props
+    del bpy.types.Scene.msft_physics_exporter_props
+    for cls in reversed(MSFT_Physics_classes):
+        bpy.utils.unregister_class(cls)
+
+# endregion
+
 class JointFixup():
     """Helper class to store information about how to connect a joint"""
     def __init__(self, joint, connected_idx):
