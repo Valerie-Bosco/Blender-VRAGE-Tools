@@ -15,7 +15,7 @@ bl_info = {
     "name" : "VRAGE Tools",
     "author" : "Keen Software House",
     "description" : "",
-    "blender" : (4, 0, 0),
+    "blender" : (4, 3, 0),
     "version" : (0, 1, 2),
     "location" : "",
     "warning" : "",
@@ -25,6 +25,7 @@ bl_info = {
 
 import bpy
 
+# TODO: We should explicitly import classes instead of wildcards, once we implement everything we need to.
 from .operators                     import *
 from .preferences                   import *
 from .ui                            import *
@@ -35,9 +36,16 @@ from .text.text                     import *
 from .utilities.documentation_link  import *
 from .utilities.notifications       import *
 
+from .utilities.MSFT_Physics        import MSFT_Physics_register, MSFT_Physics_unregister
 
 classes = (
     VRT_AddonPreferences,
+
+    VRT_Section,
+    VRT_Scene,
+    VRT_ViewLayer,
+    VRT_Notification,
+    VRT_Text,
 
     VRT_PT_Panel,
     VRT_PT_Panel_subpanel_physics,
@@ -46,12 +54,6 @@ classes = (
     VRT_MT_Menu_subpanel_sections_more_options,
     VRT_PT_Materials,
     VRT_PT_Export,
-
-    VRT_Section,
-    VRT_Scene,
-    VRT_ViewLayer,
-    VRT_Notification,
-    VRT_Text,
 
     VRT_OT_DummyOperator,
     VRT_OT_ReLinkProjectMaterials,
@@ -74,22 +76,33 @@ classes = (
     VRT_OT_DocuLink,
     VRT_OT_NotificationDisplay,
     VRT_OT_DeleteNotification,
-    VRT_OT_ClearnNotification
+    VRT_OT_ClearnNotification,
 )
 
 def register():
+
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.Scene.vrt = PointerProperty(type=VRT_Scene)
-    bpy.types.ViewLayer.vrt = PointerProperty(type=VRT_ViewLayer)
-    bpy.types.Text.vrt = PointerProperty(type=VRT_Text)
+    bpy.types.Scene.vrt = bpy.props.PointerProperty(type=VRT_Scene)
+    bpy.types.ViewLayer.vrt = bpy.props.PointerProperty(type=VRT_ViewLayer)
+    bpy.types.Text.vrt = bpy.props.PointerProperty(type=VRT_Text)
+    
+    MSFT_Physics_register()
 
 
 def unregister():
+
+    MSFT_Physics_unregister()
+
+    del bpy.types.Text.vrt
+    del bpy.types.ViewLayer.vrt
+    del bpy.types.Scene.vrt
+
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
 
-    del bpy.types.Scene.vrt
-    del bpy.types.ViewLayer.vrt
-    del bpy.types.Text.vrt
+
+# We need to wait until we create the gltf2UserExtension to import the gltf2 modules
+# Otherwise, it may fail because the gltf2 may not be loaded yet
+from .utilities.MSFT_Physics import glTF2ImportUserExtension, glTF2ExportUserExtension

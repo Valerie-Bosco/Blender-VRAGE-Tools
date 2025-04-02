@@ -210,7 +210,8 @@ def export_gltf_physics_invoke():
             export_materials='NONE',
             export_morph=False,
             export_skins=False,
-            export_animations=False
+            export_animations=False,
+            filter_glob="*.gltf",
             )
 
 def export_gltf_physics_quick(filepath):
