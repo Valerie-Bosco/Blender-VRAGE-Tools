@@ -1,8 +1,10 @@
 '''
 ATTRIBUTION NOTICE
 
-This file is a modification of an early version of the "KHR_physics_rigid_bodies" add-on, published under Apache-2.0 license.
-KHR_physics_rigid_bodies is maintained by Eoin Mcloughlin and can be found on GitHub:
+This file is a modification of an early version of the "KHR_physics_rigid_bodies" add-on, 
+published under Apache-2.0 license. KHR_physics_rigid_bodies is maintained by Eoin Mcloughlin 
+and can be found on GitHub:
+
 https://github.com/eoineoineoin/glTF_Physics_Blender_Exporter
 '''
 
