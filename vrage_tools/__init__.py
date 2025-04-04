@@ -20,7 +20,7 @@ bl_info = {
     "author" : "Keen Software House",
     "description" : "",
     "blender" : (4, 3, 0),
-    "version" : (0, 1, 2),
+    "version" : (0, 2, 0),
     "location" : "",
     "warning" : "",
     "category" : "Generic"
