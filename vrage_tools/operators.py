@@ -25,7 +25,8 @@ class VRT_OT_ReLinkProjectMaterials(Operator):
     def poll(cls, context):
         cls.poll_message_set("Asset library not set in add-on preferences")
         prefs = get_preferences()
-        return (prefs.project_asset_lib != "")
+        invalid_lib_names = ("", "0", 0, "None", None) # don't know which one of these works but it's good enough
+        return (not prefs.project_asset_lib in invalid_lib_names)
 
     def execute(self, context):
         op_fix_vrage_project_materials(self, context)
