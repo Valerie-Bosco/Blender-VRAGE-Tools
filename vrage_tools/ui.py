@@ -47,12 +47,14 @@ class VRT_PT_Panel_subpanel_physics(Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("scene.vrt_add_rigid_body", text="Add Rigid Body", icon='PHYSICS')
-        layout.operator('scene.vrt_export_collisions',text="Export Collisions", icon='EXPORT')
+        layout.operator('scene.vrt_export_collisions',                  text="Export Collisions",       icon='EXPORT')
+        layout.separator()
+        layout.operator("scene.vrt_add_rigid_body",                     text="Add Rigid Body",          icon='PHYSICS')
+        layout.operator("object.vrt_convex_hull_from_selected",         text="Generate Convex Hull",    icon='MESH_ICOSPHERE')
         layout.label(text="Fractures:")
-        layout.operator('scene.vrt_link_collisions_to_fracture',        text="Link Collisions", icon='LINKED')
-        layout.operator('scene.vrt_unlink_fracture_collisions',         text="Unlink Collisions", icon='UNLINKED')
-        layout.operator('scene.vrt_select_linked_fracture_collisions',  text="Select Linked", icon='RESTRICT_SELECT_OFF')
+        layout.operator('scene.vrt_link_collisions_to_fracture',        text="Link Collisions",         icon='LINKED')
+        layout.operator('scene.vrt_unlink_fracture_collisions',         text="Unlink Collisions",       icon='UNLINKED')
+        layout.operator('scene.vrt_select_linked_fracture_collisions',  text="Select Linked",           icon='RESTRICT_SELECT_OFF')
 
 
 class VRT_UL_sections(bpy.types.UIList): # List item class

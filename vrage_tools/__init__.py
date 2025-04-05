@@ -68,6 +68,7 @@ classes = (
     VTR_OT_LinkCollisionsToFracture,
     VTR_OT_SelectLinkedCollisions,
     VTR_OT_UnlinkCollisionsFractureCollisions,
+    VRT_OT_ConvexHullFromSelected,
     VRT_OT_section_add,
     VRT_OT_section_remove,
     VRT_OT_Section_Assign,

@@ -190,6 +190,25 @@ class VTR_OT_UnlinkCollisionsFractureCollisions(Operator):
         refresh_ui(self, context)
         return {'FINISHED'}
 
+class VRT_OT_ConvexHullFromSelected(Operator):
+    bl_idname = "object.vrt_convex_hull_from_selected"
+    bl_label = "Generate Convex Hull from Selected"
+    bl_description = (
+                    "Generate a new object that is a convex hull of selected objects. \n"
+                    + "Add a Rigid Body and Decimate, Displace modifiers to it"
+                    )
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        cls.poll_message_set("No meshes selected")
+        objs = context.selected_objects
+        return len(objs) > 0 and 'MESH' in [o.type for o in objs]
+
+    def execute(self, context):
+        convex_hull_from_selected()
+        return {'FINISHED'}
+
 #endregion
 #region Sections
 class VRT_OT_section_add(Operator):

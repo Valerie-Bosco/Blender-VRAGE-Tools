@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 import bpy
+import bmesh
+
 from ..utilities.easybpy import *
 
 from ..preferences import get_preferences
@@ -156,6 +158,62 @@ def collision_custom_prop(self, context, selected_objs, active_obj) -> bool:
     active_obj["group"] = combined_names
     return True
 
+def convex_hull_from_selected():
+
+    # Get a BMesh representation
+    bm = bmesh.new()   # create an empty BMesh
+    for obj in get_selected_objects():
+        if not obj.type == 'MESH':
+            continue
+        # create a temp global-transformed mesh
+        tmp_mesh = obj.data.copy()
+        tmp_mesh.transform(obj.matrix_world)
+        # add temp mesh to BMesh
+        bm.from_mesh(tmp_mesh)
+        # delete temp mesh
+        bpy.data.meshes.remove(tmp_mesh)
+
+    # leave only verts
+    bmesh.ops.delete(
+                bm,
+                geom=bm.edges,
+                context = 'EDGES_FACES'    
+                )
+    # create convex hull
+    ch = bmesh.ops.convex_hull(bm, input=bm.verts)
+    # Remove everything but the convex hull
+    bmesh.ops.delete(
+            bm,
+            geom=ch["geom_interior"],
+            context='VERTS',
+            )
+
+    # Finish up, write the bmesh back to a new mesh
+    mesh = bpy.data.meshes.new("Convex hull")
+    bm.to_mesh(mesh)
+    mesh.update()
+    bm.free()
+
+    # link new mesh to new object
+    obj = bpy.data.objects.new("Convex hull", mesh)
+    bpy.context.collection.objects.link(obj)
+    # add useful modifiers
+    obj.modifiers.new("Decimate", type='DECIMATE')
+    mod = obj.modifiers.new("Displace", type='DISPLACE')
+    mod.strength = -0.03
+    mod.mid_level = 0
+    # select new object
+    deselect_all_objects()
+    select_object(obj)
+    set_active_object(obj)
+    # Add a rigid body physics type if not already present
+    if not obj.rigid_body:
+        bpy.ops.rigidbody.object_add()
+    # Set the rigid body type to passive
+    obj.rigid_body.type = 'PASSIVE'
+
+#region export funcs
+
 def export_variant_suffix(variant) -> str:
     match variant:
         case 'NON_FRACTURED':
@@ -230,3 +288,5 @@ def export_gltf_physics_quick(filepath):
             export_skins=False,
             export_animations=False
             )
+    
+#endregion
