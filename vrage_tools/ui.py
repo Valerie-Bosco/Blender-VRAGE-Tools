@@ -3,6 +3,7 @@ import bpy
 from bpy.types import Panel, Menu
 
 from .utilities.documentation_link import display_docu_link
+from .assets.section_presets import section_presets
 
 class VRT_PT_Panel(Panel):
     bl_idname = 'VRT_PT_Panel'
@@ -119,16 +120,34 @@ class VRT_PT_Panel_subpanel_sections(Panel):
 
 class VRT_MT_Menu_subpanel_sections_more_options(Menu):
     bl_idname = 'VRT_MT_Menu_subpanel_sections_more_options'
-    bl_label = 'More Options'
-
-    @classmethod
-    def poll(cls, context):
-        return True
+    bl_label = "More Options"
 
     def draw(self, context):
         layout = self.layout
         layout.operator("scene.vrt_section_repopulate_list", text="Repopulate List", icon='FILE_REFRESH')
+        layout.separator()
+        layout.menu('VRT_MT_Menu_subpanel_sections_add_preset', icon='ADD')
 
+class VRT_MT_Menu_subpanel_sections_add_preset(Menu):
+    bl_idname = 'VRT_MT_Menu_subpanel_sections_add_preset'
+    bl_label = "Add Section Preset"
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        for column in section_presets:
+            col = row.column()
+            for category in column:
+                # draw category
+                col.label(text = category)
+                col.separator(type='LINE')
+                # draw items
+                for name in column[category]:
+                    op = col.operator('scene.vrt_section_add_preset', text=name)
+                    op.section_name = name
+                col.separator(type='SPACE')
+
+    
 
 class VRT_PT_Materials(Panel):
     bl_idname = 'VRT_PT_Materials'

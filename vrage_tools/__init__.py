@@ -56,6 +56,7 @@ classes = (
     VRT_UL_sections,
     VRT_PT_Panel_subpanel_sections,
     VRT_MT_Menu_subpanel_sections_more_options,
+    VRT_MT_Menu_subpanel_sections_add_preset,
     VRT_PT_Materials,
     VRT_PT_Export,
 
@@ -70,6 +71,7 @@ classes = (
     VTR_OT_UnlinkCollisionsFractureCollisions,
     VRT_OT_ConvexHullFromSelected,
     VRT_OT_section_add,
+    VRT_OT_section_add_preset,
     VRT_OT_section_remove,
     VRT_OT_Section_Assign,
     VRT_OT_Section_Remove,

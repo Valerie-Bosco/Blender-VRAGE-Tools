@@ -227,6 +227,29 @@ class VRT_OT_section_add(Operator):
         my_list.move(len(my_list) - 1, to_index)
         context.scene.vrt.sections_list_active_index = to_index
 
+        refresh_ui(self, context)
+        return {'FINISHED'}
+    
+class VRT_OT_section_add_preset(Operator):
+    bl_idname = "scene.vrt_section_add_preset"
+    bl_label = "Add Section preset"
+    bl_description = "Add a new section group preset to the scene"
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+
+    section_name: bpy.props.StringProperty(name="Section") # type: ignore
+
+    def execute(self, context):
+        my_list = context.scene.vrt.sections_list
+        active_index = context.scene.vrt.sections_list_active_index
+
+        to_index = min(len(my_list), active_index + 1)
+
+        my_list.add()
+        my_list.move(len(my_list) - 1, to_index)
+        context.scene.vrt.sections_list_active_index = to_index
+        my_list[to_index].name = self.section_name
+
+        refresh_ui(self, context)
         return {'FINISHED'}
 
 class VRT_OT_section_remove(Operator):

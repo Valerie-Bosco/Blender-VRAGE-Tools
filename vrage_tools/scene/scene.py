@@ -33,8 +33,6 @@ def update_export_path_ui(self, context):
 class VRT_Section(PropertyGroup):
     """Holder for VRT section properties"""
 
-    autoload_ignore = None
-
     name: StringProperty(
         default="Section"
     ) # type: ignore
