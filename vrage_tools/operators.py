@@ -406,11 +406,11 @@ class VRT_OT_QuickExport(Operator):
         var = context.scene.vrt.export_variant
         lod = self.export_lod
 
-        filename = f"{name}{export_variant_suffix(var)}{export_lod_suffix(lod)}"
+        filename = f"{name}{get_export_variant_suffix(var)}{get_export_lod_suffix(lod)}"
         filepath = os.path.join(dir, f"{filename}.fbx") # set path to root dir
 
         if not var == 'NONE': # if a variant is selected
-            subdir = export_variant_dir(var)
+            subdir = get_export_variant_dir(var)
             os.makedirs(name=os.path.join(dir, subdir), exist_ok=True)
             filepath = os.path.join(dir, subdir, f"{filename}.fbx") # overwrite path to include subdir
 
@@ -470,11 +470,11 @@ class VRT_OT_QuickExportCollisions(Operator):
         dir = context.scene.vrt.export_directory
         var = context.scene.vrt.export_variant
 
-        filename = f"{name}{export_variant_suffix(var)}"
+        filename = f"{name}{get_export_variant_suffix(var)}"
         filepath = os.path.join(dir, f"{filename}_collision") # set path to root dir
 
         if not var == 'NONE': # if a variant is selected
-            subdir = export_variant_dir(var)
+            subdir = get_export_variant_dir(var)
             os.makedirs(name=os.path.join(dir, subdir), exist_ok=True)
             filepath = os.path.join(dir, subdir, f"{filename}_collision") # overwrite path to include subdir
 

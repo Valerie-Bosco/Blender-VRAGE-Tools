@@ -214,7 +214,7 @@ def convex_hull_from_selected():
 
 #region export funcs
 
-def export_variant_suffix(variant) -> str:
+def get_export_variant_suffix(variant) -> str:
     match variant:
         case 'NON_FRACTURED':
             return ""
@@ -225,7 +225,7 @@ def export_variant_suffix(variant) -> str:
         case 'NONE':
             return ""
 
-def export_variant_dir(variant) -> str:
+def get_export_variant_dir(variant) -> str:
     match variant:
         case 'NON_FRACTURED':
             return "NonFractured"
@@ -236,7 +236,7 @@ def export_variant_dir(variant) -> str:
         case 'NONE': #should never happen, but adding it for completeness
             return "None"
 
-def export_lod_suffix(lod):
+def get_export_lod_suffix(lod) -> str:
     if lod:
         return f"_LOD{lod}"
     else:
