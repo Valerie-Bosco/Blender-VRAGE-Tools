@@ -18,7 +18,6 @@ def items_project_asset_lib(self, context):
 
 def update_project_asset_lib(self, context):
     updated = self.project_asset_lib
-    print(updated)
 
 
 class VRT_AddonPreferences(AddonPreferences):

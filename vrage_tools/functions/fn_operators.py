@@ -76,7 +76,6 @@ def op_fix_vrage_project_materials(self, context):
                         materials_to_append.append(external_material)
             # Add the external material to the current scene
             for mat in materials_to_append:
-                print(f"Appending {mat}")
                 data_to.materials.append(mat)
             # Make names accessible outside of loop
             imported_material_names.append(materials_to_append)
@@ -116,7 +115,6 @@ def op_fix_vrage_project_materials(self, context):
 
     # Purge unused
     bpy.ops.outliner.orphans_purge(do_recursive=True)
-    print("done")
     self.report({'INFO'}, message='Done')
 
 def clean_names(objs):
