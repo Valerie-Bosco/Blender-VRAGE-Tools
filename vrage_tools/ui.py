@@ -117,6 +117,14 @@ class VRT_PT_Panel_subpanel_sections(Panel):
 
             row_right.operator("object.vrt_section_select")
             row_right.operator("object.vrt_section_deselect")
+        
+        # include a reference to active object section
+        row = layout.row()
+        row.label(text="Object Section:")
+        try: # when object is deleted, context.object returns NoneType
+            row.prop(context.object, '["SECTION"]', text='')
+        except: # This isn't really a critical feature, so we can be careless about err handling
+            pass
 
 class VRT_MT_Menu_subpanel_sections_more_options(Menu):
     bl_idname = 'VRT_MT_Menu_subpanel_sections_more_options'
