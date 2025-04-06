@@ -181,7 +181,7 @@ class VRT_PT_Materials(Panel):
         row.use_property_split = True
         row.alignment = 'EXPAND'
         row.prop(context.scene.vrt, 'paint_color_ui', text='Paint Color')
-        row.operator('scene.vrt_reset_paint_color', text='', icon_value=715)
+        row.operator('scene.vrt_reset_paint_color', text='', icon='LOOP_BACK')
 
         layout.prop(context.scene.vrt, 'use_parallax_ui', text="Parallax")
 
