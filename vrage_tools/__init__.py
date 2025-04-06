@@ -18,9 +18,9 @@ limitations under the License.
 bl_info = {
     "name" : "VRAGE Tools",
     "author" : "Keen Software House",
-    "description" : "",
+    "description" : "A Blender Add-on to streamline and simplify the creation of 3D assets for Space Engineers 2",
     "blender" : (4, 3, 0),
-    "version" : (0, 2, 0),
+    "version" : (0, 2, 1),
     "location" : "",
     "warning" : "",
     "category" : "Generic"
