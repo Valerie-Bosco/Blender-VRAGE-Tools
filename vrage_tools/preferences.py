@@ -1,7 +1,7 @@
 import bpy
 
 from bpy.types import AddonPreferences
-from bpy.props import EnumProperty
+from bpy.props import EnumProperty, StringProperty, BoolProperty, FloatProperty
 
 
 def items_project_asset_lib(self, context):
@@ -29,6 +29,21 @@ class VRT_AddonPreferences(AddonPreferences):
         description="Asset library containing materials, etc. for your VRAGE project",
         update=update_project_asset_lib,
     ) # type: ignore
+
+    # Update Checker
+    addon_latest_version: StringProperty()
+    addon_current_version: StringProperty()
+    addon_needs_update: BoolProperty(
+        default=False
+    )
+    addon_update_message: StringProperty()
+    addon_last_check: FloatProperty(
+        subtype='TIME',
+        unit='TIME',
+        default=0.0
+    )
+    addon_cache_releases: StringProperty()
+    addon_cache_tags: StringProperty()
 
     def draw(self, context):
         layout = self.layout
