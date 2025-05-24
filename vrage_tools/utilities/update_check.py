@@ -1,4 +1,5 @@
 import bpy
+import sys
 import re
 import json
 import time
@@ -13,37 +14,53 @@ from ..preferences          import get_preferences
 rel_ver = re.compile(r"v[0-9]+\.[0-9]+\.[0-9]+$")
 dev_ver = re.compile(r"v[0-9]+\.[0-9]+\.[0-9]+\-\w+\.[0-9]{1,}$")
 
+git_url = "https://github.com/KeenSoftwareHouse/Blender-VRAGE-Tools"
 
-class SEUT_OT_GetCurrentVersion(Operator):
+
+class VRT_OT_GetCurrentVersion(Operator):
     """Opens the webpage of the latest release"""
-    bl_idname = "wm.get_current_version"
+    bl_idname = "wm.vrt_get_current_version"
     bl_label = "Get Current Version"
     bl_options = {'REGISTER', 'UNDO'}
 
 
     def execute(self, context):
 
-        addon = bpy.context.preferences.addons.get(__package__)
         preferences = get_preferences()
 
         if preferences.addon_latest_version == "":
-            webbrowser.open(f"{addon.bl_info["git_url"]}/releases/")
+            webbrowser.open(f"{git_url}/releases/")
         else:
-            webbrowser.open(f"{addon.bl_info["git_url"]}/releases/tag/v{preferences.addon_latest_version}")
+            webbrowser.open(f"{git_url}/releases/tag/v{preferences.addon_latest_version}")
 
         return {'FINISHED'}
 
 
-class SEUT_OT_CheckUpdate(Operator):
+class VRT_OT_CheckUpdate(Operator):
     """Check whether a newer update is available"""
-    bl_idname = "wm.check_update"
+    bl_idname = "wm.vrt_check_update"
     bl_label = "Check for Updates"
     bl_options = {'REGISTER', 'UNDO'}
 
 
     def execute(self, context):
 
+        addon = sys.modules["vrage_tools"]
+        preferences = get_preferences()
+
+        preferences.addon_current_version = str(addon.bl_info['version'])[1:-1].replace(', ', '.')
+
         check_repo_update()
+
+        print(
+            f"current: {preferences.addon_current_version}",
+            f"latest: {preferences.addon_latest_version}",
+            f"update: {preferences.addon_needs_update}",
+            f"message: {preferences.addon_update_message}",
+            f"cache tags: {preferences.addon_cache_tags}",
+            f"cache releases: {preferences.addon_cache_releases}",
+            f"last check: {preferences.addon_last_check}"
+        )
 
         return {'FINISHED'}
 
@@ -51,12 +68,11 @@ class SEUT_OT_CheckUpdate(Operator):
 def check_repo_update():
     """Checks the GitHub API for the latest release of the repository."""
 
-    addon = bpy.context.preferences.addons.get(__package__)
     preferences = get_preferences()
     preferences.addon_needs_update = False
     preferences.addon_update_message = ""
 
-    user_reponame = addon.bl_info["git_url"][len("https://github.com/"):]
+    user_reponame = git_url[len("https://github.com/"):]
     url_tags = f"https://api.github.com/repos/{user_reponame}/tags"
     url_releases = f"https://api.github.com/repos/{user_reponame}/releases"
     current_version = tuple(map(int, preferences.addon_current_version.split('.')))
@@ -68,6 +84,12 @@ def check_repo_update():
             response_releases = requests.get(url_releases)
             json_tags = response_tags.json()
             json_releases = response_releases.json()
+
+            print("-------------------------------------------------")
+            print(json_tags)
+            print("-------------------------------------------------")
+            print(json_releases)
+            print("-------------------------------------------------")
 
             if response_tags.status_code == 200 and response_releases.status_code == 200:
                 preferences.addon_cache_tags = json.dumps(json_tags)

@@ -45,11 +45,16 @@ class VRT_AddonPreferences(AddonPreferences):
     addon_cache_releases: StringProperty()
     addon_cache_tags: StringProperty()
 
+
     def draw(self, context):
         layout = self.layout
 
         row = layout.row()
+        op = row.operator('wm.vrt_check_update', text="", icon='FILE_REFRESH')
+
+        row = layout.row()
         row.prop(self, "project_asset_lib", text="Project Asset Library")
+
 
 def get_preferences():
     """Returns the preferences of the addon"""

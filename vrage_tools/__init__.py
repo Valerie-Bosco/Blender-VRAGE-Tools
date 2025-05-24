@@ -23,8 +23,7 @@ bl_info = {
     "version" : (0, 2, 1),
     "location" : "",
     "warning" : "",
-    "category" : "Generic",
-    "git_url" : "https://github.com/KeenSoftwareHouse/Blender-VRAGE-Tools"
+    "category" : "Generic"
 }
 
 
@@ -87,8 +86,8 @@ classes = (
     VRT_OT_DeleteNotification,
     VRT_OT_ClearnNotification,
 
-    SEUT_OT_GetCurrentVersion,
-    SEUT_OT_CheckUpdate,
+    VRT_OT_GetCurrentVersion,
+    VRT_OT_CheckUpdate,
 )
 
 def register():
