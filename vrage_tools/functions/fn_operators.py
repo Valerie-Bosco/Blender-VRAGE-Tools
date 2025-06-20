@@ -121,6 +121,8 @@ def clean_names(objs):
      for obj in objs:
             # if not "Fracture_" in obj.name:
             #     continue
+            if not len(obj.name) >= 4:
+                continue
             if not obj.name[-4] == ".":
                 continue
             if not obj.name[-3:].isdigit():

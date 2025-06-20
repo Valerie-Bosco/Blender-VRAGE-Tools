@@ -26,8 +26,10 @@ bl_info = {
     "category" : "Generic"
 }
 
+#region Imports
 
 import bpy
+from bpy.app.handlers import persistent
 
 # TODO: We should explicitly import classes instead of wildcards, once we implement everything we need to.
 from .operators                     import *
@@ -46,6 +48,7 @@ classes = (
     VRT_AddonPreferences,
 
     VRT_Section,
+    VRT_Fracture,
     VRT_Scene,
     VRT_ViewLayer,
     VRT_Notification,
@@ -53,8 +56,12 @@ classes = (
 
     VRT_PT_Panel,
     VRT_PT_Panel_subpanel_physics,
+    VRT_PT_BlockProperties,
+    VRT_UL_fractures,
+    VRT_PT_BlockProperties_subpanel_fractures,
+    VRT_MT_Menu_subpanel_fractures_more_options,
     VRT_UL_sections,
-    VRT_PT_Panel_subpanel_sections,
+    VRT_PT_BlockProperties_subpanel_sections,
     VRT_MT_Menu_subpanel_sections_more_options,
     VRT_MT_Menu_subpanel_sections_add_preset,
     VRT_PT_Materials,
@@ -70,6 +77,13 @@ classes = (
     VTR_OT_SelectLinkedCollisions,
     VTR_OT_UnlinkCollisionsFractureCollisions,
     VRT_OT_ConvexHullFromSelected,
+    VTR_OT_fracture_add,
+    VTR_OT_fracture_remove,
+    VRT_OT_fracture_Assign,
+    VRT_OT_fracture_Remove,
+    VRT_OT_fracture_Select,
+    VRT_OT_fracture_Deselect,
+    VRT_OT_fracture_Repopulate_List,
     VRT_OT_section_add,
     VRT_OT_section_add_preset,
     VRT_OT_section_remove,
@@ -86,6 +100,15 @@ classes = (
     VRT_OT_ClearnNotification,
 )
 
+#region Event Handlers
+
+@persistent
+def file_load_handler(dummy):
+    bpy.ops.scene.vrt_section_repopulate_list('INVOKE_DEFAULT',)
+
+
+#region (Un)Register
+
 def register():
 
     for cls in classes:
@@ -97,6 +120,7 @@ def register():
     
     MSFT_Physics_register()
 
+    bpy.app.handlers.load_post.append(file_load_handler)
 
 def unregister():
 
@@ -109,6 +133,7 @@ def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
 
+    bpy.app.handlers.load_post.remove(file_load_handler)
 
 # We need to wait until we create the gltf2UserExtension to import the gltf2 modules
 # Otherwise, it may fail because the gltf2 may not be loaded yet

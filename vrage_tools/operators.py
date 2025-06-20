@@ -88,7 +88,7 @@ class VRT_OT_AddRigidBody(Operator):
 class VRT_OT_ExportCollisions(Operator):
     bl_idname = "scene.vrt_export_collisions"
     bl_label = "Export Collisions"
-    bl_description = "Clean selected object names, apply scale and open exporter dialogue with preset settings"
+    bl_description = "Apply scale to selected Objects and open exporter dialogue with preset settings"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -99,7 +99,7 @@ class VRT_OT_ExportCollisions(Operator):
 
     def execute(self, context):
         objs = get_selected_objects()
-        clean_names(objs) # remove duplicate suffixes
+        # clean_names(objs) # remove duplicate suffixes
 
         # apply scale
         bpy.ops.object.transform_apply(
@@ -210,6 +210,221 @@ class VRT_OT_ConvexHullFromSelected(Operator):
         return {'FINISHED'}
 
 #endregion
+#region Fractures
+class VTR_OT_fracture_add(bpy.types.Operator):
+    bl_idname = "scene.vrt_fracture_add"
+    bl_label = "Add Fracture"
+    bl_description = "Add a new fracture to the end of list"
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+
+    @classmethod
+    def poll(cls, context):
+        cls.poll_message_set("VRAGE 3 does not support more than 15 fractures per block")
+        fractures = context.scene.vrt.fractures_list
+        return len(fractures) < 15  # Engine maximum supported fractures
+
+    def execute(self, context):
+        scene = context.scene
+        fractures = scene.vrt.fractures_list
+
+        new_index = len(fractures) + 1
+        new_fracture = fractures.add()
+        new_fracture.name = f"Fracture {new_index}"
+        new_fracture.group_id = f"fracture_{new_index:02d}"
+
+        scene.vrt.fractures_list_active_index = len(fractures) - 1
+        return {'FINISHED'}
+    
+    def invoke(self, context, _):
+        return self.execute(context)
+
+class VTR_OT_fracture_remove(bpy.types.Operator):
+    bl_idname = "scene.vrt_fracture_remove"
+    bl_label = "Remove Fracture"
+    bl_description = "Remove the last fracture from the end of list"
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+
+    @classmethod
+    def poll(cls, context):
+        cls.poll_message_set("Scene has no fractures")
+        fractures = context.scene.vrt.fractures_list
+        return len(fractures) > 0
+
+    def execute(self, context):
+        scene = context.scene
+        fractures = scene.vrt.fractures_list
+
+        scene_objs = context.scene.objects
+        for obj in scene_objs:
+            if 'ColliderMeshGroups' in obj:
+                if obj['ColliderMeshGroups'] == fractures[len(fractures) - 1].group_id:
+                    del obj['ColliderMeshGroups']
+            if 'group' in obj:
+                if obj['group'] == fractures[len(fractures) - 1].group_id:
+                    del obj['group']
+            if 'FractureGroupName' in obj:
+                if obj['FractureGroupName'] == fractures[len(fractures) - 1].group_id:
+                    del obj['FractureGroupName']
+
+        fractures.remove(len(fractures) - 1)
+        scene.vrt.fractures_list_active_index = max(0, len(fractures) - 1)
+
+        refresh_ui(self, context)
+        return {'FINISHED'}
+
+class VRT_OT_fracture_Assign(Operator):
+    bl_idname = "object.vrt_fracture_assign"
+    bl_label = "Assign"
+    bl_description = "Assign the selected objects to the active fracture"
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+
+    def execute(self, context):
+        fractures_list = bpy.context.scene.vrt.fractures_list
+        active_fracture_index = bpy.context.scene.vrt.fractures_list_active_index
+
+        if len(fractures_list) == 0:
+            self.report({'WARNING'},message="No active fracture!")
+            return {'CANCELLED'}
+
+        objs = get_selected_objects()
+        for obj in objs:
+            obj['ColliderMeshGroups'] = fractures_list[active_fracture_index].group_id
+            obj['group'] = fractures_list[active_fracture_index].group_id
+            obj['FractureGroupName'] = fractures_list[active_fracture_index].group_id
+
+        refresh_ui(self, context)
+        return {'FINISHED'}
+    
+class VRT_OT_fracture_Remove(Operator):
+    bl_idname = "object.vrt_fracture_remove"
+    bl_label = "Remove"
+    bl_description = "Remove the selected objects from the active fracture"
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+
+    def execute(self, context):
+        fractures_list = bpy.context.scene.vrt.fractures_list
+        active_fracture_index = bpy.context.scene.vrt.fractures_list_active_index
+
+        objs = get_selected_objects()
+        for obj in objs:
+            if 'ColliderMeshGroups' in obj:
+                if obj['ColliderMeshGroups'] == fractures_list[active_fracture_index].group_id:
+                    del obj['ColliderMeshGroups']
+            if 'group' in obj:
+                if obj['group'] == fractures_list[active_fracture_index].group_id:
+                    del obj['group']
+            if 'FractureGroupName' in obj:
+                if obj['FractureGroupName'] == fractures_list[active_fracture_index].group_id:
+                    del obj['FractureGroupName']
+
+        refresh_ui(self, context)
+        return {'FINISHED'}
+
+class VRT_OT_fracture_Select(Operator):
+    bl_idname = "object.vrt_fracture_select"
+    bl_label = "Select"
+    bl_description = "Select all objects from the active fracture"
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+
+    def execute(self, context):
+        fractures_list = bpy.context.scene.vrt.fractures_list
+        active_fracture_index = bpy.context.scene.vrt.fractures_list_active_index
+
+        objs = bpy.context.view_layer.objects
+        for obj in objs:
+            if 'ColliderMeshGroups' in obj:
+                if obj['ColliderMeshGroups'] == fractures_list[active_fracture_index].group_id:
+                    select_object(obj)
+            elif 'group' in obj:
+                if obj['group'] == fractures_list[active_fracture_index].group_id:
+                    select_object(obj)
+            elif 'FractureGroupName' in obj:
+                if obj['FractureGroupName'] == fractures_list[active_fracture_index].group_id:
+                    select_object(obj)
+
+        return {'FINISHED'}
+
+class VRT_OT_fracture_Deselect(Operator):
+    bl_idname = "object.vrt_fracture_deselect"
+    bl_label = "Deselect"
+    bl_description = "Deselect all objects from the active fracture"
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+
+    def execute(self, context):
+        fractures_list = bpy.context.scene.vrt.fractures_list
+        active_fracture_index = bpy.context.scene.vrt.fractures_list_active_index
+
+        objs = bpy.context.view_layer.objects
+        for obj in objs:
+            if 'ColliderMeshGroups' in obj:
+                if obj['ColliderMeshGroups'] == fractures_list[active_fracture_index].group_id:
+                    deselect_object(obj)
+            elif 'group' in obj:
+                if obj['group'] == fractures_list[active_fracture_index].group_id:
+                    deselect_object(obj)
+            elif 'FractureGroupName' in obj:
+                if obj['FractureGroupName'] == fractures_list[active_fracture_index].group_id:
+                    deselect_object(obj)
+
+        return {'FINISHED'}
+
+class VRT_OT_fracture_Repopulate_List(Operator):
+    bl_idname = "scene.vrt_fracture_repopulate_list"
+    bl_label = "Repopulate"
+    bl_description = "Repopulate fractures list with existing scene items"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        fractures_list = context.scene.vrt.fractures_list
+        fracture_ids = [a.group_id for a in fractures_list]
+        scene_objs = context.scene.objects
+        fracture_objects = []
+        
+        for obj in scene_objs:
+            fracture_id = None
+            if 'ColliderMeshGroups' in obj:
+                fracture_id = obj['ColliderMeshGroups']
+            elif 'group' in obj:
+                fracture_id = obj['group']
+            elif 'FractureGroupName' in obj:
+                fracture_id = obj['FractureGroupName']
+            else:
+                continue
+            if not fracture_id in fracture_ids:
+                fracture_ids.append(fracture_id)
+            fracture_objects.append(obj)
+
+        if len(fracture_ids) > 15:
+            self.report({'ERROR'}, message="Number of fractures in Scene exceeds 15. Re-assign fractures manually")
+        n = min(len(fracture_ids), 15) - len(fractures_list)
+        if n > 0:
+            while n > 0:
+                bpy.ops.scene.vrt_fracture_add('INVOKE_DEFAULT',)
+                n -= 1
+        
+        has_non_standard_name = False
+        for obj in fracture_objects:
+            fracture_id = None
+            if 'ColliderMeshGroups' in obj:
+                fracture_id = obj['ColliderMeshGroups']
+            elif 'group' in obj:
+                fracture_id = obj['group']
+            elif 'FractureGroupName' in obj:
+                fracture_id = obj['FractureGroupName']
+            number = str(fracture_id).replace("fracture_", "")
+            if number.isdigit():
+                if int(number) <= 15:
+                    continue
+            has_non_standard_name = True
+        if has_non_standard_name:
+            self.report({'ERROR'}, message="Some fracture group ids don't follow the 'fracture_01' format. Re-assign fractures manually")
+        
+        refresh_ui(self, context)
+        return {'FINISHED'}
+    
+    def invoke(self, context, _):
+        return self.execute(context)
+
 #region Sections
 class VRT_OT_section_add(Operator):
     bl_idname = "scene.vrt_section_add"
@@ -388,6 +603,9 @@ class VRT_OT_Section_Repopulate_List(Operator):
         
         refresh_ui(self, context)
         return {'FINISHED'}
+    
+    def invoke(self, context, _):
+        return self.execute(context)
 
 #endregion
 #region Quick Export
@@ -444,7 +662,7 @@ class VRT_OT_QuickExport(Operator):
 class VRT_OT_QuickExportCollisions(Operator):
     bl_idname = "scene.vrt_quick_export_collisions"
     bl_label = "Export Collisions"
-    bl_description = "Clean Fracture names, apply scale and export selected objects directly into its variant folder under selected directory"
+    bl_description = "Apply scale to selected Objects and export selected objects directly into its variant folder under selected directory"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -475,7 +693,7 @@ class VRT_OT_QuickExportCollisions(Operator):
         if not objs:
             self.report(type={'WARNING'}, message="Select one or more objects")
             return {'CANCELLED'}
-        clean_names(objs) # remove duplicate suffixes
+        # clean_names(objs) # remove duplicate suffixes
 
         # apply scale
         bpy.ops.object.transform_apply(
