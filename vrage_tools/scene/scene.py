@@ -112,7 +112,7 @@ class VRT_Scene(PropertyGroup):
     export_directory: StringProperty(
         name="Quick Export Directory",
         description='Root directory for exporting model. (parent directory of "NonFractured", "Fractured"...)',
-        subtype='FILE_PATH',
+        subtype='DIR_PATH',
         update = update_export_path_ui
     ) # type: ignore
 
