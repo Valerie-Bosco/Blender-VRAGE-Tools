@@ -121,6 +121,8 @@ def clean_names(objs):
      for obj in objs:
             # if not "Fracture_" in obj.name:
             #     continue
+            if not len(obj.name) >= 4:
+                continue
             if not obj.name[-4] == ".":
                 continue
             if not obj.name[-3:].isdigit():
@@ -267,6 +269,7 @@ def export_gltf_physics_invoke():
             export_morph=False,
             export_skins=False,
             export_animations=False,
+            export_extras=True,
             filter_glob="*.gltf",
             )
 
@@ -284,7 +287,8 @@ def export_gltf_physics_quick(filepath):
             export_materials='NONE',
             export_morph=False,
             export_skins=False,
-            export_animations=False
+            export_animations=False,
+            export_extras=True
             )
     
 #endregion

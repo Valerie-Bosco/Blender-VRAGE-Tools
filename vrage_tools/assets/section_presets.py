@@ -37,9 +37,7 @@ section_presets  = [
             "ButtonBottom",
         ),
         "Misc":(
-            "PowerUsageSlot_Front",
-            "ProductionSpeedSlot_Front",
-            "PowerCellHousing_01",
+
         ),
     }
 ]

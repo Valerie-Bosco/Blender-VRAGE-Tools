@@ -32,9 +32,35 @@ def update_export_path_ui(self, context):
 # Collection properties
 class VRT_Section(PropertyGroup):
     """Holder for VRT section properties"""
+    def get_name(self):
+        return self.get("name", "Section")
+
+    def set_name(self, value):
+        oldname = self.get("name", "Section")
+        scene_objs = bpy.context.scene.objects
+        for obj in scene_objs:
+            if not 'SECTION' in obj:
+                continue
+            if obj['SECTION'] == oldname:
+                obj['SECTION'] = value
+        self["name"] = value
 
     name: StringProperty(
-        default="Section"
+        default="Section",
+        get=get_name,
+        set=set_name
+    ) # type: ignore
+
+class VRT_Fracture(PropertyGroup):
+    """Holder for VRT fracture properties"""
+
+    name: StringProperty(
+        name="Name",
+        default="Fracture 1"
+    ) # type: ignore
+    group_id: StringProperty(
+        name="Group ID",
+        default="fracture_01"
     ) # type: ignore
 
 
@@ -45,7 +71,7 @@ class VRT_Scene(PropertyGroup):
     version: IntProperty(
         default=1
     ) # type: ignore
-
+    
     paint_color_ui: FloatVectorProperty(
         name='Paint Color',
         description="Change display color of colorable VRAGE materials",
@@ -66,6 +92,12 @@ class VRT_Scene(PropertyGroup):
         update=update_use_parallax_ui
     ) # type: ignore
 
+    fractures_list: CollectionProperty(
+        type=VRT_Fracture
+        ) # type: ignore
+
+    fractures_list_active_index: IntProperty() # type: ignore
+
     sections_list: CollectionProperty(
         type=VRT_Section
         ) # type: ignore
@@ -80,7 +112,7 @@ class VRT_Scene(PropertyGroup):
     export_directory: StringProperty(
         name="Quick Export Directory",
         description='Root directory for exporting model. (parent directory of "NonFractured", "Fractured"...)',
-        subtype='FILE_PATH',
+        subtype='DIR_PATH',
         update = update_export_path_ui
     ) # type: ignore
 
