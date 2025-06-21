@@ -709,6 +709,8 @@ class glTF2ImportUserExtension:
         self.joints_to_fixup = []
 
     def gather_import_gltf_before_hook(self, gltf):
+        if not self.properties.enabled:
+            return
         cgExt = gltf.data.extensions.get(collisionGeom_Extension_Name)
         if cgExt != None:
             self.cgExt = CollisionGeomGlTFExtension.from_dict(cgExt)
@@ -893,7 +895,7 @@ class glTF2ExportUserExtension:
     def gather_gltf_extensions_hook(self, gltf2_plan, export_settings):
         if not self.properties.enabled:
             return
-
+        bpy.context.scene.msft_physics_exporter_props.enabled = False
         if gltf2_plan.extensions is None:
             gltf2_plan.extensions = {}
 
