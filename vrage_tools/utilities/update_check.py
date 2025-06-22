@@ -52,16 +52,6 @@ class VRT_OT_CheckUpdate(Operator):
 
         check_repo_update()
 
-        print(
-            f"current: {preferences.addon_current_version}",
-            f"latest: {preferences.addon_latest_version}",
-            f"update: {preferences.addon_needs_update}",
-            f"message: {preferences.addon_update_message}",
-            f"cache tags: {preferences.addon_cache_tags}",
-            f"cache releases: {preferences.addon_cache_releases}",
-            f"last check: {preferences.addon_last_check}"
-        )
-
         return {'FINISHED'}
 
 
@@ -84,12 +74,6 @@ def check_repo_update():
             response_releases = requests.get(url_releases)
             json_tags = response_tags.json()
             json_releases = response_releases.json()
-
-            print("-------------------------------------------------")
-            print(json_tags)
-            print("-------------------------------------------------")
-            print(json_releases)
-            print("-------------------------------------------------")
 
             if response_tags.status_code == 200 and response_releases.status_code == 200:
                 preferences.addon_cache_tags = json.dumps(json_tags)
@@ -135,6 +119,10 @@ def check_repo_update():
 
             elif current_version > latest_version:
                 preferences.addon_update_message = "Latest development version."
+                preferences.addon_needs_update = False
+
+            else:
+                preferences.addon_update_message = f"VRAGE Tools is up to date."
                 preferences.addon_needs_update = False
 
         elif response_tags.status_code == 403 or response_releases.status_code == 403:

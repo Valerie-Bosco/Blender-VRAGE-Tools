@@ -1,4 +1,5 @@
 import bpy
+import time
 
 from bpy.types import AddonPreferences
 from bpy.props import EnumProperty, StringProperty, BoolProperty, FloatProperty
@@ -47,10 +48,41 @@ class VRT_AddonPreferences(AddonPreferences):
 
 
     def draw(self, context):
+        preferences = get_preferences()
         layout = self.layout
 
-        row = layout.row()
-        op = row.operator('wm.vrt_check_update', text="", icon='FILE_REFRESH')
+        box = layout.box()
+        row = box.row()
+        row.label(text="Update Status", icon='FILE_REFRESH')
+
+        col = row.column(align=True)
+        row = col.row()
+        row.alignment = 'RIGHT'
+
+        row = row.row(align=True)
+        op = row.operator('wm.vrt_get_current_version', text="Releases", icon='URL')
+
+        row = box.row(align=True)
+        row.scale_y = 2.0
+        split = row.split(align=True)
+
+        if preferences.addon_last_check != 0:
+            if preferences.addon_needs_update:
+                split.alert = True
+                op = split.operator('wm.vrt_get_current_version', text=preferences.addon_update_message, icon='ERROR')
+            else:
+                op = split.operator('wm.vrt_get_current_version', text=preferences.addon_update_message, icon='CHECKMARK')
+                split.enabled = False
+
+            split = row.split(align=True)
+            op = split.operator('wm.vrt_check_update', text="", icon='FILE_REFRESH')
+
+            row = box.row(align=True)
+            row.alignment = 'RIGHT'
+            row.label(text= "Last check: " + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(preferences.addon_last_check)))
+
+        else:
+            op = split.operator('wm.vrt_check_update', icon='FILE_REFRESH')
 
         row = layout.row()
         row.prop(self, "project_asset_lib", text="Project Asset Library")
