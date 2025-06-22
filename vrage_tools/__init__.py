@@ -143,5 +143,5 @@ from .utilities.MSFT_Physics import glTF2ImportUserExtension, glTF2ExportUserExt
 def file_load_handler(dummy):
     bpy.ops.scene.vrt_section_repopulate_list('INVOKE_DEFAULT',)
     bpy.context.scene.msft_physics_exporter_props.enabled = False # Disable havok extension. It can mess with glTF imports
-
-    check_repo_update()
+    
+    bpy.ops.wm.vrt_check_update('INVOKE_DEFAULT',)
