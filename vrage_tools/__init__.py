@@ -1,5 +1,5 @@
 '''
-VRAGE Tools, Copyright 2025, 
+VRAGE Tools, Copyright 2025,
 Keen Software House s.r.o., Na Petynce 213/23b, Břevnov, 169 00 Praha 6, Czech Republic, Company number: 05264561
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -8,10 +8,10 @@ You may obtain a copy of the License at
 
 http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software 
-(VRAGE Tools) distributed under the License is distributed on an "AS IS" BASIS, 
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-See the License for the specific language governing permissions and 
+Unless required by applicable law or agreed to in writing, software
+(VRAGE Tools) distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
@@ -41,6 +41,7 @@ from .view_layer.view_layer         import *
 from .text.text                     import *
 from .utilities.documentation_link  import *
 from .utilities.notifications       import *
+from .utilities.update_check        import *
 
 from .utilities.MSFT_Physics        import MSFT_Physics_register, MSFT_Physics_unregister
 
@@ -98,6 +99,9 @@ classes = (
     VRT_OT_NotificationDisplay,
     VRT_OT_DeleteNotification,
     VRT_OT_ClearnNotification,
+
+    VRT_OT_GetCurrentVersion,
+    VRT_OT_CheckUpdate,
 )
 
 #region Event Handlers
@@ -118,7 +122,7 @@ def register():
     bpy.types.Scene.vrt = bpy.props.PointerProperty(type=VRT_Scene)
     bpy.types.ViewLayer.vrt = bpy.props.PointerProperty(type=VRT_ViewLayer)
     bpy.types.Text.vrt = bpy.props.PointerProperty(type=VRT_Text)
-    
+
     MSFT_Physics_register()
 
     bpy.app.handlers.load_post.append(file_load_handler)
