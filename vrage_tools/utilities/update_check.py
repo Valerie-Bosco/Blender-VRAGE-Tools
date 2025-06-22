@@ -7,6 +7,7 @@ import requests
 import webbrowser
 
 from bpy.types              import Operator
+from bpy.props              import BoolProperty
 
 from ..preferences          import get_preferences
 
@@ -23,12 +24,13 @@ class VRT_OT_GetCurrentVersion(Operator):
     bl_label = "Get Current Version"
     bl_options = {'REGISTER', 'UNDO'}
 
+    releases: BoolProperty()
 
     def execute(self, context):
 
         preferences = get_preferences()
 
-        if preferences.addon_latest_version == "":
+        if preferences.addon_latest_version == "" or self.releases:
             webbrowser.open(f"{git_url}/releases/")
         else:
             webbrowser.open(f"{git_url}/releases/tag/v{preferences.addon_latest_version}")
@@ -70,14 +72,12 @@ def check_repo_update(force=False):
     try:
         skip = False
         if time.time() - preferences.addon_last_check >= 4000 or force:
-            print(">>>>>>>>>>>>>>")
             response_tags = requests.get(url_tags)
             response_releases = requests.get(url_releases)
             json_tags = response_tags.json()
             json_releases = response_releases.json()
 
             if response_tags.status_code == 200 and response_releases.status_code == 200:
-                print("*****************")
                 preferences.addon_cache_tags = json.dumps(json_tags)
                 preferences.addon_cache_releases = json.dumps(json_releases)
                 preferences.addon_last_check = time.time()

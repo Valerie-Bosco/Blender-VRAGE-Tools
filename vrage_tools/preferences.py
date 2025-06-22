@@ -61,6 +61,7 @@ class VRT_AddonPreferences(AddonPreferences):
 
         row = row.row(align=True)
         op = row.operator('wm.vrt_get_current_version', text="Releases", icon='URL')
+        op.releases = True
 
         row = box.row(align=True)
         row.scale_y = 2.0

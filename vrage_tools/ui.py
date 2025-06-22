@@ -2,6 +2,8 @@ import bpy
 
 from bpy.types import Panel, Menu
 
+from vrage_tools.preferences import get_preferences
+
 from .utilities.documentation_link import display_docu_link
 from .assets.section_presets import section_presets
 
@@ -23,6 +25,11 @@ class VRT_PT_Panel(Panel):
 
     def draw(self, context):
         layout = self.layout
+
+        preferences = get_preferences()
+        if preferences.addon_needs_update:
+            layout.label(text=preferences.addon_update_message, icon='ERROR')
+            layout.separator()
 
         layout.operator('scene.vrt_relink_project_materials',text="Fix Project Materials", icon='MATERIAL')
         layout.operator("scene.vrt_clean_names", text="Clean Names", icon='SORTALPHA')
@@ -121,7 +128,7 @@ class VRT_PT_BlockProperties_subpanel_fractures(Panel):
         col.operator("scene.vrt_fracture_remove", icon='REMOVE', text="")
         col.separator(factor=1.0)
         col.menu('VRT_MT_Menu_subpanel_fractures_more_options', text="", icon='DOWNARROW_HLT')
-        
+
         # Draw fracture action buttons
         if len(context.scene.vrt.fractures_list) > 0:
             row = layout.row()
@@ -231,7 +238,7 @@ class VRT_MT_Menu_subpanel_sections_add_preset(Menu):
                     op.section_name = name
                 col.separator(type='SPACE')
 
-    
+
 
 class VRT_PT_Materials(Panel):
     bl_idname = 'VRT_PT_Materials'
