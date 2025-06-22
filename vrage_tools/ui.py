@@ -316,7 +316,9 @@ class VRT_PT_Export(Panel):
         col.separator()
         col.prop(context.scene.vrt, "export_variant", text="Variant")
 
+        layout.separator()
         layout.label(text="Quick Export:", icon='EXPORT')
+        layout.prop(context.scene.vrt, "export_limit")
         grid = layout.grid_flow(row_major=True, columns=2, even_columns=True, even_rows=True, align=True)
         op = grid.operator('scene.vrt_quick_export', text="LOD 0"); op.export_lod = 0
         op = grid.operator('scene.vrt_quick_export', text="LOD 1"); op.export_lod = 1

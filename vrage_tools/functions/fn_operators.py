@@ -243,11 +243,25 @@ def get_export_lod_suffix(lod) -> str:
         return ""
 
 def export_fbx_quick(filepath):
+    use_selection = False
+    use_visible = False
+    use_active_collection = False
+    match bpy.context.scene.vrt.export_limit:
+        case 'SELECTED_OBJECTS':
+            use_selection = True
+        case 'ACTIVE_COLLECTION':
+            use_active_collection = True
+        case 'VISIBLE_OBJECTS':
+            use_visible = True
+    
     bpy.ops.export_scene.fbx(
     filepath=filepath,
     check_existing=False,
+    # Limit to
+    use_selection=use_selection,
+    use_visible=use_visible,
+    use_active_collection=use_active_collection,
     # Include
-    use_selection=True,
     object_types={'EMPTY', 'MESH', 'ARMATURE', 'OTHER'},
     use_custom_props=True,
     # Transform
@@ -274,11 +288,26 @@ def export_gltf_physics_invoke():
             )
 
 def export_gltf_physics_quick(filepath):
+    use_selection = False
+    use_visible = False
+    use_active_collection = False
+    match bpy.context.scene.vrt.export_limit:
+        case 'SELECTED_OBJECTS':
+            use_selection = True
+        case 'ACTIVE_COLLECTION':
+            use_active_collection = True
+        case 'VISIBLE_OBJECTS':
+            use_visible = True
+
     bpy.ops.export_scene.gltf(
             filepath=filepath,
             export_format = 'GLTF_SEPARATE',
             will_save_settings=False,
-            use_selection=True,
+            # Limit to
+            use_selection=use_selection,
+            use_visible=use_visible,
+            use_active_collection=use_active_collection,
+
             export_yup=True,
             export_gpu_instances=False,
             export_apply=False,

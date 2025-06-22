@@ -126,3 +126,13 @@ class VRT_Scene(PropertyGroup):
         name="Export Variant",
         description="Variant of the block to export. Selects subdirectory in root directory"
     ) # type: ignore
+
+    export_limit: EnumProperty(
+        items=[
+            ('SELECTED_OBJECTS', "Selected Objets", "Export only selected objects"),
+            ('ACTIVE_COLLECTION', "Active Collection", "Export only the currently active collection"),
+            ('VISIBLE_OBJECTS', "Visible Objets", "Export all visible objects") 
+        ],
+        name="Limit to",
+        description="Limit which objects to export"
+    ) # type: ignore

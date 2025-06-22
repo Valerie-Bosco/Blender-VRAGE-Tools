@@ -638,9 +638,20 @@ class VRT_OT_QuickExport(Operator):
         return context.window_manager.invoke_confirm(self, event)
 
     def execute(self, context):
-        if not get_selected_objects():
-            self.report(type={'WARNING'}, message="Select one or more objects")
-            return {'CANCELLED'}
+        match context.scene.vrt.export_limit:
+            case 'SELECTED_OBJECTS':
+                if not get_selected_objects():
+                    self.report(type={'WARNING'}, message="Select one or more objects")
+                    return {'CANCELLED'}
+            case 'ACTIVE_COLLECTION':
+                if len(context.collection.all_objects) == 0:
+                    self.report(type={'WARNING'}, message="Active collection is empty")
+                    return {'CANCELLED'}
+            case 'VISIBLE_OBJECTS':
+                if len(context.visible_objects) == 0:
+                    self.report(type={'WARNING'}, message="No objects visible")
+                    return {'CANCELLED'}
+
 
         name = context.scene.vrt.export_name
         dir = context.scene.vrt.export_directory
@@ -656,7 +667,7 @@ class VRT_OT_QuickExport(Operator):
             filepath = os.path.join(dir, subdir, f"{filename}.fbx") # overwrite path to include subdir
 
         export_fbx_quick(filepath)
-
+        self.report({'INFO'}, "Done")
         return {'FINISHED'}
 
 class VRT_OT_QuickExportCollisions(Operator):
@@ -689,12 +700,30 @@ class VRT_OT_QuickExportCollisions(Operator):
         return context.window_manager.invoke_confirm(self, event)
 
     def execute(self, context):
-        objs = get_selected_objects()
-        if not objs:
-            self.report(type={'WARNING'}, message="Select one or more objects")
-            return {'CANCELLED'}
-        # clean_names(objs) # remove duplicate suffixes
+        objs = None
+        match context.scene.vrt.export_limit:
+            case 'SELECTED_OBJECTS':
+                objs = get_selected_objects()
+                if not objs:
+                    self.report(type={'WARNING'}, message="Select one or more objects")
+                    return {'CANCELLED'}
+            case 'ACTIVE_COLLECTION':
+                objs = context.collection.all_objects
+                if len(objs) == 0:
+                    self.report(type={'WARNING'}, message="Active collection is empty")
+                    return {'CANCELLED'}
+            case 'VISIBLE_OBJECTS':
+                objs = context.visible_objects
+                if len(objs) == 0:
+                    self.report(type={'WARNING'}, message="No objects visible")
+                    return {'CANCELLED'}
 
+        deselect_all_objects()
+        for obj in objs:
+            try:
+                select_object(obj)
+            except:
+                pass
         # apply scale
         bpy.ops.object.transform_apply(
             location=False,
@@ -703,6 +732,7 @@ class VRT_OT_QuickExportCollisions(Operator):
             properties=True,
             isolate_users=True
             )
+        bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
         # Invoke glTF export
         context.scene.msft_physics_exporter_props.enabled = True # Enable havok extention
@@ -720,5 +750,6 @@ class VRT_OT_QuickExportCollisions(Operator):
             filepath = os.path.join(dir, subdir, f"{filename}_collision") # overwrite path to include subdir
 
         export_gltf_physics_quick(filepath)
+        self.report({'INFO'}, "Done")
         return {'FINISHED'}
 #endregion
