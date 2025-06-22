@@ -19,7 +19,7 @@ bl_info = {
     "name" : "VRAGE Tools",
     "author" : "Keen Software House",
     "description" : "A Blender Add-on to streamline and simplify the creation of 3D assets for Space Engineers 2",
-    "blender" : (4, 4, 0),
+    "blender" : (4, 3, 0),
     "version" : (0, 3, 0),
     "location" : "",
     "warning" : "",
