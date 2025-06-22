@@ -83,6 +83,10 @@ class VRT_AddonPreferences(AddonPreferences):
 
         else:
             op = split.operator('wm.vrt_check_update', icon='FILE_REFRESH')
+            if preferences.addon_update_message != "":
+                row = box.row(align=True)
+                row.alignment = 'RIGHT'
+                row.label(text=preferences.addon_update_message)
 
         row = layout.row()
         row.prop(self, "project_asset_lib", text="Project Asset Library")

@@ -104,14 +104,6 @@ classes = (
     VRT_OT_CheckUpdate,
 )
 
-#region Event Handlers
-
-@persistent
-def file_load_handler(dummy):
-    bpy.ops.scene.vrt_section_repopulate_list('INVOKE_DEFAULT',)
-    bpy.context.scene.msft_physics_exporter_props.enabled = False # Disable havok extension. It can mess with glTF imports
-
-
 #region (Un)Register
 
 def register():
@@ -143,3 +135,13 @@ def unregister():
 # We need to wait until we create the gltf2UserExtension to import the gltf2 modules
 # Otherwise, it may fail because the gltf2 may not be loaded yet
 from .utilities.MSFT_Physics import glTF2ImportUserExtension, glTF2ExportUserExtension
+
+
+#region Event Handlers
+
+@persistent
+def file_load_handler(dummy):
+    bpy.ops.scene.vrt_section_repopulate_list('INVOKE_DEFAULT',)
+    bpy.context.scene.msft_physics_exporter_props.enabled = False # Disable havok extension. It can mess with glTF imports
+
+    check_repo_update()

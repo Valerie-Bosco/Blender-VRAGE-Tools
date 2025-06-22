@@ -126,7 +126,7 @@ def check_repo_update():
                 preferences.addon_needs_update = False
 
         elif response_tags.status_code == 403 or response_releases.status_code == 403:
-            preferences.addon_update_message = "Rate limit exceeded!"
+            preferences.addon_update_message = "Rate limit exceeded! Please wait one hour to check again."
 
         else:
             preferences.addon_update_message = "No valid releases found."
