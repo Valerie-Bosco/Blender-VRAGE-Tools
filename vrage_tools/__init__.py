@@ -19,8 +19,8 @@ bl_info = {
     "name" : "VRAGE Tools",
     "author" : "Keen Software House",
     "description" : "A Blender Add-on to streamline and simplify the creation of 3D assets for Space Engineers 2",
-    "blender" : (4, 3, 0),
-    "version" : (0, 2, 1),
+    "blender" : (4, 4, 0),
+    "version" : (0, 2, 2),
     "location" : "",
     "warning" : "",
     "category" : "Generic"
@@ -143,5 +143,5 @@ from .utilities.MSFT_Physics import glTF2ImportUserExtension, glTF2ExportUserExt
 def file_load_handler(dummy):
     bpy.ops.scene.vrt_section_repopulate_list('INVOKE_DEFAULT',)
     bpy.context.scene.msft_physics_exporter_props.enabled = False # Disable havok extension. It can mess with glTF imports
-    
-    bpy.ops.wm.vrt_check_update('INVOKE_DEFAULT',)
+
+    bpy.ops.wm.vrt_check_update('INVOKE_DEFAULT')
