@@ -50,12 +50,12 @@ class VRT_OT_CheckUpdate(Operator):
 
         preferences.addon_current_version = str(addon.bl_info['version'])[1:-1].replace(', ', '.')
 
-        check_repo_update()
+        check_repo_update(force=True)
 
         return {'FINISHED'}
 
 
-def check_repo_update():
+def check_repo_update(force=False):
     """Checks the GitHub API for the latest release of the repository."""
 
     preferences = get_preferences()
@@ -69,13 +69,15 @@ def check_repo_update():
 
     try:
         skip = False
-        if time.time() - preferences.addon_last_check >= 4000:
+        if time.time() - preferences.addon_last_check >= 4000 or force:
+            print(">>>>>>>>>>>>>>")
             response_tags = requests.get(url_tags)
             response_releases = requests.get(url_releases)
             json_tags = response_tags.json()
             json_releases = response_releases.json()
 
             if response_tags.status_code == 200 and response_releases.status_code == 200:
+                print("*****************")
                 preferences.addon_cache_tags = json.dumps(json_tags)
                 preferences.addon_cache_releases = json.dumps(json_releases)
                 preferences.addon_last_check = time.time()
