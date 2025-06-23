@@ -16,4 +16,4 @@ This addon is still in active development and more features will be added in the
 4. Restart Blender.
 
 ## On the topic of documentation
-There is currently no official documentation for this Add-on, but it is planned. For now, please refer to published modding guides and read tooltips inside the Add-on interface (over over buttons).
+There is currently no official documentation for this Add-on, but it is planned. For now, please refer to published modding guides and read tooltips inside the Add-on interface (hover over buttons).
