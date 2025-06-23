@@ -10,10 +10,11 @@ This addon is still in active development and more features will be added in the
 - enables exporting of collisions as extended glTF
 
 ## Installation
+1. Click on Releases and then click on the latest `vrage_tools_v***.zip` to download it.
 1. Open a new, empty, file in Blender.
-2. Go to `Edit --> Preferences... --> Add-ons`.
-3. Click `Install...` and select the newly downloaded ` vrage_tools_v***.zip`.
-4. Restart Blender.
+1. Go to `Edit --> Preferences... --> Add-ons`.
+1. Click `Install...` and select the newly downloaded ` vrage_tools_v***.zip`.
+1. Restart Blender.
 
 ## On the topic of documentation
 There is currently no official documentation for this Add-on, but it is planned. For now, please refer to published modding guides and read tooltips inside the Add-on interface (hover over buttons).
