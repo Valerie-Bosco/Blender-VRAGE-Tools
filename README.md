@@ -1,5 +1,5 @@
 # VRAGE Tools Blender Add-on
-A Blender Add-on to streamline and simplify the creation of 3D assets for Space Engineers 2.
+A Blender Add-on for Blender 4.3.0 or newer to streamline and simplify the creation of 3D assets for Space Engineers 2.
 
 This addon is still in active development and more features will be added in the future.
 
