@@ -1,11 +1,10 @@
 import bpy
+from bpy.types import Menu, Panel
 
-from bpy.types import Panel, Menu
-
-from vrage_tools.preferences import get_preferences
-
-from .utilities.documentation_link import display_docu_link
 from .assets.section_presets import section_presets
+from .preferences import get_preferences
+from .utilities.documentation_link import display_docu_link
+
 
 class VRT_PT_Panel(Panel):
     bl_idname = 'VRT_PT_Panel'
@@ -31,10 +30,11 @@ class VRT_PT_Panel(Panel):
             layout.label(text=preferences.addon_update_message, icon='ERROR')
             layout.separator()
 
-        layout.operator('scene.vrt_relink_project_materials',text="Fix Project Materials", icon='MATERIAL')
+        layout.operator('scene.vrt_relink_project_materials', text="Fix Project Materials", icon='MATERIAL')
         layout.operator("scene.vrt_clean_names", text="Clean Names", icon='SORTALPHA')
 
         layout.operator("wm.vrt_notification_display", icon='INFO')
+
 
 class VRT_PT_Panel_subpanel_physics(Panel):
     bl_idname = 'VRT_PT_Panel_subpanel_physics'
@@ -55,17 +55,17 @@ class VRT_PT_Panel_subpanel_physics(Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator('scene.vrt_export_collisions',                  text="Export Collisions",       icon='EXPORT')
+        layout.operator('scene.vrt_export_collisions', text="Export Collisions", icon='EXPORT')
         layout.separator()
-        layout.operator("scene.vrt_add_rigid_body",                     text="Add Rigid Body",          icon='PHYSICS')
-        layout.operator("object.vrt_convex_hull_from_selected",         text="Generate Convex Hull",    icon='MESH_ICOSPHERE')
+        layout.operator("scene.vrt_add_rigid_body", text="Add Rigid Body", icon='PHYSICS')
+        layout.operator("object.vrt_convex_hull_from_selected", text="Generate Convex Hull", icon='MESH_ICOSPHERE')
         # layout.label(text="Fractures:")
         # layout.operator('scene.vrt_link_collisions_to_fracture',        text="Link Collisions",         icon='LINKED')
         # layout.operator('scene.vrt_unlink_fracture_collisions',         text="Unlink Collisions",       icon='UNLINKED')
         # layout.operator('scene.vrt_select_linked_fracture_collisions',  text="Select Linked",           icon='RESTRICT_SELECT_OFF')
 
 
-class VRT_UL_fractures(bpy.types.UIList): # List item class
+class VRT_UL_fractures(bpy.types.UIList):  # List item class
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         layout.alignment = 'LEFT'
@@ -73,6 +73,7 @@ class VRT_UL_fractures(bpy.types.UIList): # List item class
         row.alignment = 'EXPAND'
         # row.prop(item, "name", text="", emboss=False, icon='GROUP')
         row.label(text=item.name, icon='GROUP')
+
 
 class VRT_PT_BlockProperties(Panel):
     bl_idname = 'VRT_PT_BlockProperties'
@@ -92,6 +93,7 @@ class VRT_PT_BlockProperties(Panel):
 
     def draw(self, context):
         layout = self.layout
+
 
 class VRT_PT_BlockProperties_subpanel_fractures(Panel):
     bl_idname = 'VRT_PT_BlockProperties_subpanel_fractures'
@@ -141,6 +143,7 @@ class VRT_PT_BlockProperties_subpanel_fractures(Panel):
             row_right.operator("object.vrt_fracture_select")
             row_right.operator("object.vrt_fracture_deselect")
 
+
 class VRT_MT_Menu_subpanel_fractures_more_options(Menu):
     bl_idname = 'VRT_MT_Menu_subpanel_fractures_more_options'
     bl_label = "More Options"
@@ -149,13 +152,15 @@ class VRT_MT_Menu_subpanel_fractures_more_options(Menu):
         layout = self.layout
         layout.operator("scene.vrt_fracture_repopulate_list", text="Repopulate List", icon='FILE_REFRESH')
 
-class VRT_UL_sections(bpy.types.UIList): # List item class
+
+class VRT_UL_sections(bpy.types.UIList):  # List item class
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         layout.alignment = 'LEFT'
         row = layout.row()
         row.alignment = 'EXPAND'
         row.prop(item, "name", text="", emboss=False, icon='GROUP')
+
 
 class VRT_PT_BlockProperties_subpanel_sections(Panel):
     bl_idname = 'VRT_PT_BlockProperties_subpanel_sections'
@@ -209,6 +214,7 @@ class VRT_PT_BlockProperties_subpanel_sections(Panel):
             row_right.operator("object.vrt_section_select")
             row_right.operator("object.vrt_section_deselect")
 
+
 class VRT_MT_Menu_subpanel_sections_more_options(Menu):
     bl_idname = 'VRT_MT_Menu_subpanel_sections_more_options'
     bl_label = "More Options"
@@ -218,6 +224,7 @@ class VRT_MT_Menu_subpanel_sections_more_options(Menu):
         layout.operator("scene.vrt_section_repopulate_list", text="Repopulate List", icon='FILE_REFRESH')
         layout.separator()
         layout.menu('VRT_MT_Menu_subpanel_sections_add_preset', icon='ADD')
+
 
 class VRT_MT_Menu_subpanel_sections_add_preset(Menu):
     bl_idname = 'VRT_MT_Menu_subpanel_sections_add_preset'
@@ -230,14 +237,13 @@ class VRT_MT_Menu_subpanel_sections_add_preset(Menu):
             col = row.column()
             for category in column:
                 # draw category
-                col.label(text = category)
+                col.label(text=category)
                 col.separator(type='LINE')
                 # draw items
                 for name in column[category]:
                     op = col.operator('scene.vrt_section_add_preset', text=name)
                     op.section_name = name
                 col.separator(type='SPACE')
-
 
 
 class VRT_PT_Materials(Panel):
@@ -267,6 +273,7 @@ class VRT_PT_Materials(Panel):
         row.operator('scene.vrt_reset_paint_color', text='', icon='LOOP_BACK')
 
         layout.prop(context.scene.vrt, 'use_parallax_ui', text="Parallax")
+
 
 class VRT_PT_Materials_subpanel_uv(Panel):
 
@@ -320,9 +327,14 @@ class VRT_PT_Export(Panel):
         layout.label(text="Quick Export:", icon='EXPORT')
         layout.prop(context.scene.vrt, "export_limit")
         grid = layout.grid_flow(row_major=True, columns=2, even_columns=True, even_rows=True, align=True)
-        op = grid.operator('scene.vrt_quick_export', text="LOD 0"); op.export_lod = 0
-        op = grid.operator('scene.vrt_quick_export', text="LOD 1"); op.export_lod = 1
-        op = grid.operator('scene.vrt_quick_export', text="LOD 2"); op.export_lod = 2
-        op = grid.operator('scene.vrt_quick_export', text="LOD 3"); op.export_lod = 3
-        op = grid.operator('scene.vrt_quick_export', text="LOD 4"); op.export_lod = 4
+        op = grid.operator('scene.vrt_quick_export', text="LOD 0")
+        op.export_lod = 0
+        op = grid.operator('scene.vrt_quick_export', text="LOD 1")
+        op.export_lod = 1
+        op = grid.operator('scene.vrt_quick_export', text="LOD 2")
+        op.export_lod = 2
+        op = grid.operator('scene.vrt_quick_export', text="LOD 3")
+        op.export_lod = 3
+        op = grid.operator('scene.vrt_quick_export', text="LOD 4")
+        op.export_lod = 4
         grid.operator('scene.vrt_quick_export_collisions', text="Collision")

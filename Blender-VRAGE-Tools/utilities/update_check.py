@@ -1,16 +1,15 @@
-import bpy
-import sys
-import re
 import json
+import re
+import sys
 import time
-import requests
 import webbrowser
 
-from bpy.types              import Operator
-from bpy.props              import BoolProperty
+import bpy
+import requests
+from bpy.props import BoolProperty
+from bpy.types import Operator
 
-from ..preferences          import get_preferences
-
+from ..preferences import get_preferences
 
 rel_ver = re.compile(r"v[0-9]+\.[0-9]+\.[0-9]+$")
 dev_ver = re.compile(r"v[0-9]+\.[0-9]+\.[0-9]+\-\w+\.[0-9]{1,}$")
@@ -44,10 +43,9 @@ class VRT_OT_CheckUpdate(Operator):
     bl_label = "Check for Updates"
     bl_options = {'REGISTER', 'UNDO'}
 
-
     def execute(self, context):
 
-        addon = sys.modules["vrage_tools"]
+        addon = sys.modules[__package__]
         preferences = get_preferences()
 
         preferences.addon_current_version = str(addon.bl_info['version'])[1:-1].replace(', ', '.')
