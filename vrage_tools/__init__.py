@@ -15,35 +15,38 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-bl_info = {
-    "name" : "VRAGE Tools",
-    "author" : "Keen Software House",
-    "description" : "A Blender Add-on to streamline and simplify the creation of 3D assets for Space Engineers 2",
-    "blender" : (4, 3, 0),
-    "version" : (0, 3, 0),
-    "location" : "",
-    "warning" : "",
-    "category" : "Generic"
-}
-
-#region Imports
-
 import bpy
 from bpy.app.handlers import persistent
 
+from .operators import *
+from .preferences import *
+from .scene.scene import *
+from .text.text import *
+from .ui import *
+from .utilities.documentation_link import *
+from .utilities.MSFT_Physics import (MSFT_Physics_register,
+                                     MSFT_Physics_unregister,
+                                     glTF2ExportUserExtension,
+                                     glTF2ImportUserExtension)
+from .utilities.notifications import *
+from .utilities.update_check import *
+from .view_layer.view_layer import *
+
+bl_info = {
+    "name": "VRAGE Tools",
+    "author": "Keen Software House",
+    "description": "A Blender Add-on to streamline and simplify the creation of 3D assets for Space Engineers 2",
+    "blender": (4, 3, 0),
+    "version": (0, 3, 0),
+    "location": "",
+    "warning": "",
+    "category": "Generic"
+}
+
+# region Imports
+
+
 # TODO: We should explicitly import classes instead of wildcards, once we implement everything we need to.
-from .operators                     import *
-from .preferences                   import *
-from .ui                            import *
-
-from .scene.scene                   import *
-from .view_layer.view_layer         import *
-from .text.text                     import *
-from .utilities.documentation_link  import *
-from .utilities.notifications       import *
-from .utilities.update_check        import *
-
-from .utilities.MSFT_Physics        import MSFT_Physics_register, MSFT_Physics_unregister
 
 classes = (
     VRT_AddonPreferences,
@@ -66,6 +69,7 @@ classes = (
     VRT_MT_Menu_subpanel_sections_more_options,
     VRT_MT_Menu_subpanel_sections_add_preset,
     VRT_PT_Materials,
+    VRT_PT_Materials_subpanel_info,
     VRT_PT_Export,
 
     VRT_OT_DummyOperator,
@@ -104,7 +108,8 @@ classes = (
     VRT_OT_CheckUpdate,
 )
 
-#region (Un)Register
+# region (Un)Register
+
 
 def register():
 
@@ -119,6 +124,7 @@ def register():
 
     bpy.app.handlers.load_post.append(file_load_handler)
 
+
 def unregister():
 
     MSFT_Physics_unregister()
@@ -132,16 +138,16 @@ def unregister():
 
     bpy.app.handlers.load_post.remove(file_load_handler)
 
+
 # We need to wait until we create the gltf2UserExtension to import the gltf2 modules
 # Otherwise, it may fail because the gltf2 may not be loaded yet
-from .utilities.MSFT_Physics import glTF2ImportUserExtension, glTF2ExportUserExtension
 
+# region Event Handlers
 
-#region Event Handlers
 
 @persistent
 def file_load_handler(dummy):
     bpy.ops.scene.vrt_section_repopulate_list('INVOKE_DEFAULT',)
-    bpy.context.scene.msft_physics_exporter_props.enabled = False # Disable havok extension. It can mess with glTF imports
+    bpy.context.scene.msft_physics_exporter_props.enabled = False  # Disable havok extension. It can mess with glTF imports
 
     bpy.ops.wm.vrt_check_update('INVOKE_DEFAULT')
