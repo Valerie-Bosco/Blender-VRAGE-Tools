@@ -14,7 +14,7 @@ def main():
             init_content = init_file.read()
         init_file.close()
 
-        addon_version_match = re.search(r"([\"\']version[\"\']\s+:\s+(\(\s*[0-9]*\,\s*[0-9]*\,\s*[0-9]*\)))", init_content)
+        addon_version_match = re.search(r"([\"\']version[\"\']\s*:\s*(\(\s*[0-9]*\,\s*[0-9]*\,\s*[0-9]*\)))", init_content)
         if (addon_version_match is not None):
 
             addon_version = str(
