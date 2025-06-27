@@ -8,7 +8,7 @@ def main():
     parent_path = pathlib.Path(__file__).resolve().parent
 
     if (parent_path.is_dir()):
-        zip_source_path = pathlib.Path.joinpath(parent_path, "Blender-VRAGE-Tools")
+        zip_source_path = pathlib.Path.joinpath(parent_path, "vrage_tools")
 
         with zip_source_path.joinpath("__init__.py").open() as init_file:
             init_content = init_file.read()
@@ -32,7 +32,7 @@ def main():
 
             zip_target_path = zip_source_path.joinpath(f"Blender_VRAGE_Tools_v{addon_version}")
 
-            shutil.copytree(zip_source_path, parent_path.joinpath("temp", "Blender-VRAGE-Tools"))
+            shutil.copytree(zip_source_path, parent_path.joinpath("temp", "vrage_tools"))
             temp_folder = parent_path.joinpath("temp")
 
             zipfile = shutil.make_archive(zip_target_path, "zip", temp_folder)
