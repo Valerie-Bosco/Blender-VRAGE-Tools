@@ -38,7 +38,7 @@ def main():
             zipfile = shutil.make_archive(zip_target_path, "zip", temp_folder)
             shutil.rmtree(temp_folder)
         else:
-            raise ValueError(f"Addon version not found Value is: {parent_path}")
+            raise ValueError(f"Addon version not found Value is: {addon_version_match}")
     else:
         raise ValueError(f"Parent_Path is not is not a directory: {parent_path}")
 
