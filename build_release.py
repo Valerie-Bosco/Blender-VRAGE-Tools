@@ -30,7 +30,7 @@ def main():
                 )
             ).replace(",", ".")
 
-            zip_target_path = zip_source_path.joinpath(f"Blender_VRAGE_Tools_v{addon_version}")
+            zip_target_path = parent_path.joinpath(f"Blender_VRAGE_Tools_v{addon_version}")
 
             shutil.copytree(zip_source_path, parent_path.joinpath("temp", "vrage_tools"))
             temp_folder = parent_path.joinpath("temp")
