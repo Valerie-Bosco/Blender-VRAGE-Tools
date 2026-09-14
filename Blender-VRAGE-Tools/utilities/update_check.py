@@ -9,7 +9,7 @@ import webbrowser
 from bpy.types              import Operator
 from bpy.props              import BoolProperty
 
-from ..preferences          import get_preferences
+from ..BVT_preferences          import get_preferences
 
 
 rel_ver = re.compile(r"v[0-9]+\.[0-9]+\.[0-9]+$")
@@ -47,7 +47,7 @@ class VRT_OT_CheckUpdate(Operator):
 
     def execute(self, context):
 
-        addon = sys.modules["vrage_tools"]
+        addon = sys.modules["Blender-VRAGE-Tools"]
         preferences = get_preferences()
 
         preferences.addon_current_version = str(addon.bl_info['version'])[1:-1].replace(', ', '.')

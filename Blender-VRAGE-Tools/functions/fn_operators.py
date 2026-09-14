@@ -1,16 +1,13 @@
 import os
 from pathlib import Path
-import bpy
+
 import bmesh
 
+from ..BVT_preferences import get_preferences
 from ..utilities.easybpy import *
-
-from ..preferences import get_preferences
 
 
 def op_fix_vrage_project_materials(self, context):
-
-
     prefs = get_preferences()
 
     def compare_names(name: str, ref: str):
@@ -45,14 +42,14 @@ def op_fix_vrage_project_materials(self, context):
         library_path = Path(asset_lib.path)
 
         if not os.path.exists(library_path):
-            self.report({'ERROR'}, message='Asset library path missing')
-            return {'CANCELLED'}
+            self.report({"ERROR"}, message="Asset library path missing")
+            return {"CANCELLED"}
 
         blend_files = [fp for fp in library_path.glob("**/*.blend") if fp.is_file()]
 
         if blend_files == []:
-            self.report({'ERROR'}, message='Asset library empty')
-            return {'CANCELLED'}
+            self.report({"ERROR"}, message="Asset library empty")
+            return {"CANCELLED"}
 
     ##### Append materials
     # Init list of material base names
@@ -61,7 +58,10 @@ def op_fix_vrage_project_materials(self, context):
     scene_materials = bpy.data.materials
 
     for blend_file in blend_files:
-        with bpy.data.libraries.load(str(blend_file), assets_only=True, link=True) as (data_from, data_to):
+        with bpy.data.libraries.load(str(blend_file), assets_only=True, link=True) as (
+                data_from,
+                data_to,
+        ):
             # Get a list of the materials in the external file
             external_materials = data_from.materials
             # Init list of materials to append
@@ -70,8 +70,8 @@ def op_fix_vrage_project_materials(self, context):
             for scene_material in scene_materials:
                 for external_material in external_materials:
                     if external_material in materials_to_append:
-                            continue
-                    if compare_names(scene_material.name,external_material):
+                        continue
+                    if compare_names(scene_material.name, external_material):
                         # Add material name to list
                         materials_to_append.append(external_material)
             # Add the external material to the current scene
@@ -115,30 +115,31 @@ def op_fix_vrage_project_materials(self, context):
 
     # Purge unused
     bpy.ops.outliner.orphans_purge(do_recursive=True)
-    self.report({'INFO'}, message='Done')
+    self.report({"INFO"}, message="Done")
+
 
 def clean_names(objs):
-     for obj in objs:
-            # if not "Fracture_" in obj.name:
-            #     continue
-            if not len(obj.name) >= 4:
-                continue
-            if not obj.name[-4] == ".":
-                continue
-            if not obj.name[-3:].isdigit():
-                continue
+    for obj in objs:
+        # if not "Fracture_" in obj.name:
+        #     continue
+        if not len(obj.name) >= 4:
+            continue
+        if not obj.name[-4] == ".":
+            continue
+        if not obj.name[-3:].isdigit():
+            continue
 
-            init_name = obj.name
-            new_name = obj.name[:-4]
+        init_name = obj.name
+        new_name = obj.name[:-4]
+        obj.name = new_name
+        # sometimes just setting the name doesn't work if there is a hidden object in the scene with that name.
+        # This addresses that problematic object directly and switches the names:
+        if not obj.name == new_name:
+            bpy.data.objects[new_name].name = init_name
             obj.name = new_name
-            # sometimes just setting the name doesn't work if there is a hidden object in the scene with that name.
-            # This addresses that problematic object directly and switches the names:
-            if not obj.name == new_name:
-                bpy.data.objects[new_name].name = init_name
-                obj.name = new_name
+
 
 def collision_custom_prop(self, context, selected_objs, active_obj) -> bool:
-
     # Get the names of all objects except the active one
     names = [obj.name for obj in selected_objs if obj != active_obj]
     # Clean names
@@ -146,24 +147,24 @@ def collision_custom_prop(self, context, selected_objs, active_obj) -> bool:
         if not name[-4] == ".":
             continue
         if not name[-3:].isdigit():
-                continue
+            continue
         names[i] = name[:-4]
     # Check for duplicates
     if not len(names) == len(set(names)):
         return False
     # Combine the names into a single string
-    combined_names = '|'.join(names)
+    combined_names = "|".join(names)
 
     active_obj["ColliderMeshGroups"] = combined_names
     active_obj["group"] = combined_names
     return True
 
-def convex_hull_from_selected():
 
+def convex_hull_from_selected():
     # Get a BMesh representation
-    bm = bmesh.new()   # create an empty BMesh
+    bm = bmesh.new()  # create an empty BMesh
     for obj in get_selected_objects():
-        if not obj.type == 'MESH':
+        if not obj.type == "MESH":
             continue
         # create a temp global-transformed mesh
         tmp_mesh = obj.data.copy()
@@ -174,19 +175,15 @@ def convex_hull_from_selected():
         bpy.data.meshes.remove(tmp_mesh)
 
     # leave only verts
-    bmesh.ops.delete(
-                bm,
-                geom=bm.edges,
-                context = 'EDGES_FACES'    
-                )
+    bmesh.ops.delete(bm, geom=bm.edges, context="EDGES_FACES")
     # create convex hull
     ch = bmesh.ops.convex_hull(bm, input=bm.verts)
     # Remove everything but the convex hull
     bmesh.ops.delete(
-            bm,
-            geom=ch["geom_interior"],
-            context='VERTS',
-            )
+        bm,
+        geom=ch["geom_interior"],
+        context="VERTS",
+    )
 
     # Finish up, write the bmesh back to a new mesh
     mesh = bpy.data.meshes.new("Convex hull")
@@ -198,8 +195,8 @@ def convex_hull_from_selected():
     obj = bpy.data.objects.new("Convex hull", mesh)
     bpy.context.collection.objects.link(obj)
     # add useful modifiers
-    obj.modifiers.new("Decimate", type='DECIMATE')
-    mod = obj.modifiers.new("Displace", type='DISPLACE')
+    obj.modifiers.new("Decimate", type="DECIMATE")
+    mod = obj.modifiers.new("Displace", type="DISPLACE")
     mod.strength = -0.03
     mod.mid_level = 0
     # select new object
@@ -210,31 +207,35 @@ def convex_hull_from_selected():
     if not obj.rigid_body:
         bpy.ops.rigidbody.object_add()
     # Set the rigid body type to passive
-    obj.rigid_body.type = 'PASSIVE'
+    obj.rigid_body.type = "PASSIVE"
 
-#region export funcs
+
+# region export funcs
+
 
 def get_export_variant_suffix(variant) -> str:
     match variant:
-        case 'NON_FRACTURED':
+        case "NON_FRACTURED":
             return ""
-        case 'FRACTURED':
+        case "FRACTURED":
             return "_Fractured"
-        case 'DEFORMED':
+        case "DEFORMED":
             return "_Deformed"
-        case 'NONE':
+        case "NONE":
             return ""
+
 
 def get_export_variant_dir(variant) -> str:
     match variant:
-        case 'NON_FRACTURED':
+        case "NON_FRACTURED":
             return "NonFractured"
-        case 'FRACTURED':
+        case "FRACTURED":
             return "Fractured"
-        case 'DEFORMED':
+        case "DEFORMED":
             return "Deformed"
-        case 'NONE': #should never happen, but adding it for completeness
+        case "NONE":  # should never happen, but adding it for completeness
             return "None"
+
 
 def get_export_lod_suffix(lod) -> str:
     if lod:
@@ -242,82 +243,84 @@ def get_export_lod_suffix(lod) -> str:
     else:
         return ""
 
+
 def export_fbx_quick(filepath):
     use_selection = False
     use_visible = False
     use_active_collection = False
     match bpy.context.scene.vrt.export_limit:
-        case 'SELECTED_OBJECTS':
+        case "SELECTED_OBJECTS":
             use_selection = True
-        case 'ACTIVE_COLLECTION':
+        case "ACTIVE_COLLECTION":
             use_active_collection = True
-        case 'VISIBLE_OBJECTS':
+        case "VISIBLE_OBJECTS":
             use_visible = True
-    
+
     bpy.ops.export_scene.fbx(
-    filepath=filepath,
-    check_existing=False,
-    # Limit to
-    use_selection=use_selection,
-    use_visible=use_visible,
-    use_active_collection=use_active_collection,
-    # Include
-    object_types={'EMPTY', 'MESH', 'ARMATURE', 'OTHER'},
-    use_custom_props=True,
-    # Transform
-    apply_scale_options='FBX_SCALE_ALL',
+        filepath=filepath,
+        check_existing=False,
+        # Limit to
+        use_selection=use_selection,
+        use_visible=use_visible,
+        use_active_collection=use_active_collection,
+        # Include
+        object_types={"EMPTY", "MESH", "ARMATURE", "OTHER"},
+        use_custom_props=True,
+        # Transform
+        apply_scale_options="FBX_SCALE_ALL",
     )
+
 
 def export_gltf_physics_invoke():
     bpy.ops.export_scene.gltf(
-            'INVOKE_DEFAULT',
-            export_format = 'GLTF_SEPARATE',
-            will_save_settings=False,
-            use_selection=True,
-            export_yup=True,
-            export_gpu_instances=False,
-            export_apply=False,
-            export_texcoords=False,
-            export_normals=False,
-            export_materials='NONE',
-            export_morph=False,
-            export_skins=False,
-            export_animations=False,
-            export_extras=True,
-            filter_glob="*.gltf",
-            )
+        "INVOKE_DEFAULT",
+        export_format="GLTF_SEPARATE",
+        will_save_settings=False,
+        use_selection=True,
+        export_yup=True,
+        export_gpu_instances=False,
+        export_apply=False,
+        export_texcoords=False,
+        export_normals=False,
+        export_materials="NONE",
+        export_morph=False,
+        export_skins=False,
+        export_animations=False,
+        export_extras=True,
+        filter_glob="*.gltf",
+    )
+
 
 def export_gltf_physics_quick(filepath):
     use_selection = False
     use_visible = False
     use_active_collection = False
     match bpy.context.scene.vrt.export_limit:
-        case 'SELECTED_OBJECTS':
+        case "SELECTED_OBJECTS":
             use_selection = True
-        case 'ACTIVE_COLLECTION':
+        case "ACTIVE_COLLECTION":
             use_active_collection = True
-        case 'VISIBLE_OBJECTS':
+        case "VISIBLE_OBJECTS":
             use_visible = True
 
     bpy.ops.export_scene.gltf(
-            filepath=filepath,
-            export_format = 'GLTF_SEPARATE',
-            will_save_settings=False,
-            # Limit to
-            use_selection=use_selection,
-            use_visible=use_visible,
-            use_active_collection=use_active_collection,
+        filepath=filepath,
+        export_format="GLTF_SEPARATE",
+        will_save_settings=False,
+        # Limit to
+        use_selection=use_selection,
+        use_visible=use_visible,
+        use_active_collection=use_active_collection,
+        export_yup=True,
+        export_gpu_instances=False,
+        export_apply=False,
+        export_texcoords=False,
+        export_normals=False,
+        export_materials="NONE",
+        export_morph=False,
+        export_skins=False,
+        export_animations=False,
+        export_extras=True,
+    )
 
-            export_yup=True,
-            export_gpu_instances=False,
-            export_apply=False,
-            export_texcoords=False,
-            export_normals=False,
-            export_materials='NONE',
-            export_morph=False,
-            export_skins=False,
-            export_animations=False,
-            export_extras=True
-            )
-    
-#endregion
+# endregion

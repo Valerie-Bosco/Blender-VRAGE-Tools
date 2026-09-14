@@ -1,0 +1,84 @@
+name: Build Release
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+  RELEASE_BRANCH: release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+
+
+permissions:
+  contents: write
+
+
+
+jobs:
+  sync-release-branch:
+    if: contains(github.event.head_commit.message, '-release')
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: "${{env.RELEASE_BRANCH}}"
+          submodules: recursive
+
+      - name: Sync release from main
+        run: |
+          git config user.name "${{ github.event.head_commit.author.name }}"
+          git config user.email "${{ github.event.head_commit.author.email }}"
+          
+          git checkout -B release origin/release
+          git reset --hard origin/$DEFAULT_BRANCH
+          git push --force-with-lease origin release
+
+          git submodule sync --recursive
+          git submodule update --init --recursive
+          
+          TAG="v$(grep '"version"' Blender-VRAGE-Tools/__init__.py | sed -E 's/.*"version"[[:space:]]*:[[:space:]]*\(([^)]*)\).*/\1/' | tr -d ' ' | tr ',' '.')"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+
+      - name: Zip release
+        shell: bash
+        run: |
+          mkdir -p "./build/libs/$TAG"
+
+           zip -r \
+            "./build/libs/$TAG/${{ github.event.repository.name }}.zip" \
+            "Blender-VRAGE-Tools" \
+            -x "./*/.git/*" \
+                 "./*/.github/*" \
+                 "./*/.idea/*" \
+                 "./*/.git" \
+                 "./*/.gitignore" \
+                 "./*/README.*" \
+                 "./*/LICENSE"
+
+      - name: Create or update GitHub release
+        run: |
+          if ! gh release create "$TAG" \
+            --title "$TAG" \
+            --latest \
+            ./build/libs/$TAG/*; then
+
+            # Update release notes and mark as latest
+            gh release edit "$TAG" \
+              --title "$TAG" \
+              --latest
+
+            # Re-upload artifacts (delete first to avoid duplicates)
+            for FILE in ./build/libs/$TAG/*; do
+              NAME=$(basename "$FILE")
+              gh release delete-asset "$TAG" "$NAME" -y || true
+              gh release upload "$TAG" "$FILE" --clobber
+            done
+          fi

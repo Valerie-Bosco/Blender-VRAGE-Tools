@@ -3,7 +3,7 @@ import bpy
 from .utilities.easybpy import *
 from .functions.fn_operators import *
 from .functions.fn_ui import refresh_ui
-from .preferences import get_preferences
+from .BVT_preferences import get_preferences
 
 from bpy.types import Context, Operator
 

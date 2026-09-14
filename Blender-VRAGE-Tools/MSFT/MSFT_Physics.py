@@ -1,32 +1,43 @@
-'''
+"""
 ATTRIBUTION NOTICE
 
-This file is a modification of an early version of the "KHR_physics_rigid_bodies" add-on, 
-published under Apache-2.0 license. KHR_physics_rigid_bodies is maintained by Eoin Mcloughlin 
+This file is a modification of an early version of the "KHR_physics_rigid_bodies" add-on,
+published under Apache-2.0 license. KHR_physics_rigid_bodies is maintained by Eoin Mcloughlin
 and can be found on GitHub:
 
 https://github.com/eoineoineoin/glTF_Physics_Blender_Exporter
-'''
+"""
 
-
-
+import math
 
 import bpy
 import gpu
-from io_scene_gltf2.io.com.gltf2_io import Node, Mesh
 from gpu_extras.batch import batch_for_shader
-from mathutils import Matrix, Quaternion, Vector, Euler
-import os, sys, math, traceback
 
-from io_scene_gltf2.io.com.gltf2_io import from_dict, from_union, from_none, from_float
-from io_scene_gltf2.io.com.gltf2_io import from_str, from_list, from_bool, from_int
-from io_scene_gltf2.io.com.gltf2_io import to_float, to_class
+# noinspection PyUnresolvedReferences
+from io_scene_gltf2.io.com.gltf2_io import (
+    Mesh,
+    Node,
+    from_bool,
+    from_dict,
+    from_float,
+    from_int,
+    from_list,
+    from_none,
+    from_str,
+    from_union,
+    to_class,
+    to_float,
+)
+from mathutils import Euler, Matrix, Quaternion, Vector
+
+from ..MSFT import MSFT_Properties
 
 # glTF extensions are named following a convention with known prefixes.
 # See: https://github.com/KhronosGroup/glTF/tree/master/extensions#about-gltf-extensions
 # also: https://github.com/KhronosGroup/glTF/blob/master/extensions/Prefixes.md
-collisionGeom_Extension_Name = 'MSFT_collision_primitives'
-rigidBody_Extension_Name = 'MSFT_rigid_bodies'
+collisionGeom_Extension_Name = "MSFT_collision_primitives"
+rigidBody_Extension_Name = "MSFT_rigid_bodies"
 
 # Support for an extension is "required" if a typical glTF viewer cannot be expected
 # to load a given model without understanding the contents of the extension.
@@ -35,25 +46,23 @@ rigidBody_Extension_Name = 'MSFT_rigid_bodies'
 extension_is_required = False
 
 # Constant used to construct some quaternions when switching up axis
-halfSqrt2 = 2 ** 0.5 * 0.5
+halfSqrt2 = 2**0.5 * 0.5
+
 
 # Enum values for friction/restitution combine modes
-physics_material_combine_types = [
-    ('AVERAGE', 'Average', '', 0),
-    ('MINIMUM', 'Minimum', '', 1),
-    ('MAXIMUM', 'Maximum', '', 2),
-    ('MULTIPLY', 'Multiply', '', 3)
-]
+
 
 def from_vec(x):
     """Utility to convert a vector, in the style of gltf2_io"""
     assert isinstance(x, Vector)
     return from_list(from_float, list(x.to_tuple()))
 
+
 def from_quat(x):
     """Utility to convert a quaternion, in the style of gltf2_io"""
     assert isinstance(x, Quaternion)
     return from_list(from_float, list(x))
+
 
 def inv_vec(v):
     """Utility to calculate the reciprocal of a vector [1/v_0, 1/v_1, ... 1/v_n]"""
@@ -61,7 +70,7 @@ def inv_vec(v):
     return Vector([1.0 / x for x in v])
 
 
-class gltfProperty():
+class gltfProperty:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.extensions = None
@@ -69,9 +78,13 @@ class gltfProperty():
 
     def to_dict(self):
         result = {}
-        result["extensions"] = from_union([lambda x: from_dict(lambda x: from_dict(lambda x: x, x), x), from_none], self.extensions)
+        result["extensions"] = from_union(
+            [lambda x: from_dict(lambda x: from_dict(lambda x: x, x), x), from_none],
+            self.extensions,
+        )
         result["extras"] = self.extras
         return result
+
 
 class Collider(gltfProperty):
     def __init__(self, *args, **kwargs):
@@ -88,36 +101,71 @@ class Collider(gltfProperty):
 
     def to_dict(self):
         result = super().to_dict()
-        result["collisionSystems"] = from_union([lambda x: from_list(from_str, x), from_none], self.collision_systems)
-        result["collideWithSystems"] = from_union([lambda x: from_list(from_str, x), from_none], self.collide_with_systems)
-        result["notCollideWithSystems"] = from_union([lambda x: from_list(from_str, x), from_none], self.not_collide_systems)
+        result["collisionSystems"] = from_union(
+            [lambda x: from_list(from_str, x), from_none], self.collision_systems
+        )
+        result["collideWithSystems"] = from_union(
+            [lambda x: from_list(from_str, x), from_none], self.collide_with_systems
+        )
+        result["notCollideWithSystems"] = from_union(
+            [lambda x: from_list(from_str, x), from_none], self.not_collide_systems
+        )
 
-        result["sphere"] = from_union([lambda x: to_class(Collider.Sphere, x), from_none], self.sphere)
-        result["box"] = from_union([lambda x: to_class(Collider.Box, x), from_none], self.box)
-        result["capsule"] = from_union([lambda x: to_class(Collider.Capsule, x), from_none], self.capsule)
-        result["cylinder"] = from_union([lambda x: to_class(Collider.Cylinder, x), from_none], self.cylinder)
-        result["convex"] = from_union([lambda x: to_class(Collider.Convex, x), from_none], self.convex)
-        result["trimesh"] = from_union([lambda x: to_class(Collider.TriMesh, x), from_none], self.trimesh)
+        result["sphere"] = from_union(
+            [lambda x: to_class(Collider.Sphere, x), from_none], self.sphere
+        )
+        result["box"] = from_union(
+            [lambda x: to_class(Collider.Box, x), from_none], self.box
+        )
+        result["capsule"] = from_union(
+            [lambda x: to_class(Collider.Capsule, x), from_none], self.capsule
+        )
+        result["cylinder"] = from_union(
+            [lambda x: to_class(Collider.Cylinder, x), from_none], self.cylinder
+        )
+        result["convex"] = from_union(
+            [lambda x: to_class(Collider.Convex, x), from_none], self.convex
+        )
+        result["trimesh"] = from_union(
+            [lambda x: to_class(Collider.TriMesh, x), from_none], self.trimesh
+        )
         return result
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
         result = Collider()
-        result.collision_systems = from_union([lambda x: from_list(from_str, x), from_none], obj.get('collisionSystems'))
-        result.collide_with_systems = from_union([lambda x: from_list(from_str, x), from_none], obj.get('collideWithSystems'))
-        result.not_colide_systesm = from_union([lambda x: from_list(from_str, x), from_none], obj.get('notCollideWithSystems'))
+        result.collision_systems = from_union(
+            [lambda x: from_list(from_str, x), from_none], obj.get("collisionSystems")
+        )
+        result.collide_with_systems = from_union(
+            [lambda x: from_list(from_str, x), from_none], obj.get("collideWithSystems")
+        )
+        result.not_colide_systesm = from_union(
+            [lambda x: from_list(from_str, x), from_none],
+            obj.get("notCollideWithSystems"),
+        )
 
-        result.sphere = from_union([Collider.Sphere.from_dict, from_none], obj.get('sphere'))
-        result.box = from_union([Collider.Box.from_dict, from_none], obj.get('box'))
-        result.capsule = from_union([Collider.Capsule.from_dict, from_none], obj.get('capsule'))
-        result.cylinder = from_union([Collider.Cylinder.from_dict, from_none], obj.get('cylinder'))
-        result.convex = from_union([Collider.Convex.from_dict, from_none], obj.get('convex'))
-        result.trimesh = from_union([Collider.TriMesh.from_dict, from_none], obj.get('trimesh'))
+        result.sphere = from_union(
+            [Collider.Sphere.from_dict, from_none], obj.get("sphere")
+        )
+        result.box = from_union([Collider.Box.from_dict, from_none], obj.get("box"))
+        result.capsule = from_union(
+            [Collider.Capsule.from_dict, from_none], obj.get("capsule")
+        )
+        result.cylinder = from_union(
+            [Collider.Cylinder.from_dict, from_none], obj.get("cylinder")
+        )
+        result.convex = from_union(
+            [Collider.Convex.from_dict, from_none], obj.get("convex")
+        )
+        result.trimesh = from_union(
+            [Collider.TriMesh.from_dict, from_none], obj.get("trimesh")
+        )
         return result
 
     class Sphere(gltfProperty):
-        def __init__(self, radius = 0.5):
+        def __init__(self, radius=0.5):
             super().__init__()
             self.radius = radius
 
@@ -129,12 +177,13 @@ class Collider(gltfProperty):
         @staticmethod
         def from_dict(obj):
             assert isinstance(obj, dict)
-            if obj == None: return None
-            radius = from_union([from_float, from_none], obj.get('radius'))
+            if obj == None:
+                return None
+            radius = from_union([from_float, from_none], obj.get("radius"))
             return Collider.Sphere(radius)
 
     class Box(gltfProperty):
-        def __init__(self, size = Vector((1.0, 1.0, 1.0))):
+        def __init__(self, size=Vector((1.0, 1.0, 1.0))):
             super().__init__()
             self.size = size
 
@@ -146,12 +195,15 @@ class Collider(gltfProperty):
         @staticmethod
         def from_dict(obj):
             assert isinstance(obj, dict)
-            if obj == None: return None
-            size = from_union([lambda x: Vector(from_list(from_float, x)), from_none], obj.get('size'))
+            if obj == None:
+                return None
+            size = from_union(
+                [lambda x: Vector(from_list(from_float, x)), from_none], obj.get("size")
+            )
             return Collider.Box(size)
 
     class Capsule(gltfProperty):
-        def __init__(self, height = 0.5, radius = 0.25):
+        def __init__(self, height=0.5, radius=0.25):
             super().__init__()
             self.height = height
             self.radius = radius
@@ -165,13 +217,14 @@ class Collider(gltfProperty):
         @staticmethod
         def from_dict(obj):
             assert isinstance(obj, dict)
-            if obj == None: return None
-            height = from_union([from_float, from_none], obj.get('height'))
-            radius = from_union([from_float, from_none], obj.get('radius'))
+            if obj == None:
+                return None
+            height = from_union([from_float, from_none], obj.get("height"))
+            radius = from_union([from_float, from_none], obj.get("radius"))
             return Collider.Capsule(height, radius)
 
     class Cylinder(gltfProperty):
-        def __init__(self, height = 0.5, radius = 0.25):
+        def __init__(self, height=0.5, radius=0.25):
             super().__init__()
             self.height = height
             self.radius = radius
@@ -185,15 +238,17 @@ class Collider(gltfProperty):
         @staticmethod
         def from_dict(obj):
             assert isinstance(obj, dict)
-            if obj == None: return None
-            height = from_union([from_float, from_none], obj.get('height'))
-            radius = from_union([from_float, from_none], obj.get('radius'))
+            if obj == None:
+                return None
+            height = from_union([from_float, from_none], obj.get("height"))
+            radius = from_union([from_float, from_none], obj.get("radius"))
             return Collider.Cylinder(height, radius)
 
     class Convex(gltfProperty):
         def __init__(self, mesh):
             super().__init__()
             self.mesh = mesh
+
         def to_dict(self):
             result = super().to_dict()
             result["mesh"] = self.mesh
@@ -202,8 +257,9 @@ class Collider(gltfProperty):
         @staticmethod
         def from_dict(obj):
             assert isinstance(obj, dict)
-            if obj == None: return None
-            mesh = from_union([from_int, from_none], obj.get('mesh'))
+            if obj == None:
+                return None
+            mesh = from_union([from_int, from_none], obj.get("mesh"))
             return Collider.Convex(mesh)
 
     class TriMesh(gltfProperty):
@@ -219,8 +275,9 @@ class Collider(gltfProperty):
         @staticmethod
         def from_dict(obj):
             assert isinstance(obj, dict)
-            if obj == None: return None
-            mesh = from_union([from_int, from_none], obj.get('mesh'))
+            if obj == None:
+                return None
+            mesh = from_union([from_int, from_none], obj.get("mesh"))
             return Collider.TriMesh(mesh)
 
 
@@ -236,8 +293,12 @@ class CollisionGeomGlTFExtension:
     def from_dict(obj):
         assert isinstance(obj, dict)
         result = CollisionGeomGlTFExtension()
-        result.colliders = from_union([lambda x: from_list(Collider.from_dict, x), from_none], obj.get('colliders'))
+        result.colliders = from_union(
+            [lambda x: from_list(Collider.from_dict, x), from_none],
+            obj.get("colliders"),
+        )
         return result
+
 
 class PhysicsMaterial(gltfProperty):
     def __init__(self, *args, **kwargs):
@@ -250,23 +311,40 @@ class PhysicsMaterial(gltfProperty):
 
     def to_dict(self):
         result = super().to_dict()
-        result["staticFriction"] = from_union([from_float, from_none], self.static_friction)
-        result["dynamicFriction"] = from_union([from_float, from_none], self.dynamic_friction)
+        result["staticFriction"] = from_union(
+            [from_float, from_none], self.static_friction
+        )
+        result["dynamicFriction"] = from_union(
+            [from_float, from_none], self.dynamic_friction
+        )
         result["restitution"] = from_union([from_float, from_none], self.restitution)
-        result["frictionCombine"] = from_union([from_str, from_none], self.friction_combine)
-        result["restitutionCombine"] = from_union([from_str, from_none], self.restitution_combine)
+        result["frictionCombine"] = from_union(
+            [from_str, from_none], self.friction_combine
+        )
+        result["restitutionCombine"] = from_union(
+            [from_str, from_none], self.restitution_combine
+        )
         return result
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
         result = PhysicsMaterial()
-        result.static_friction = from_union([from_float, from_none], obj.get('staticFriction'))
-        result.dynamic_friction = from_union([from_float, from_none], obj.get('dynamicFriction'))
-        result.restitution = from_union([from_float, from_none], obj.get('restitution'))
-        result.friction_combine = from_union([from_str, from_none], obj.get('frictionCombine'))
-        result.restitution_combine= from_union([from_str, from_none], obj.get('restitutionCombine'))
+        result.static_friction = from_union(
+            [from_float, from_none], obj.get("staticFriction")
+        )
+        result.dynamic_friction = from_union(
+            [from_float, from_none], obj.get("dynamicFriction")
+        )
+        result.restitution = from_union([from_float, from_none], obj.get("restitution"))
+        result.friction_combine = from_union(
+            [from_str, from_none], obj.get("frictionCombine")
+        )
+        result.restitution_combine = from_union(
+            [from_str, from_none], obj.get("restitutionCombine")
+        )
         return result
+
 
 class RigidBody(gltfProperty):
     def __init__(self, *args, **kwargs):
@@ -285,11 +363,21 @@ class RigidBody(gltfProperty):
         result["isKinematic"] = from_union([from_bool, from_none], self.is_kinematic)
         result["inverseMass"] = from_union([from_float, from_none], self.inverse_mass)
         result["centerOfMass"] = from_union([from_vec, from_none], self.center_of_mass)
-        result["inverseInertiaTensor"] = from_union([from_vec, from_none], self.inverse_inertia_tensor)
-        result["inertiaOrientation"] = from_union([from_quat, from_none], self.inertia_orientation)
-        result["linearVelocity"] = from_union([from_vec, from_none], self.linear_velocity)
-        result["angularVelocity"] = from_union([from_vec, from_none], self.angular_velocity)
-        result["gravityFactor"] = from_union([from_float, from_none], self.gravity_factor)
+        result["inverseInertiaTensor"] = from_union(
+            [from_vec, from_none], self.inverse_inertia_tensor
+        )
+        result["inertiaOrientation"] = from_union(
+            [from_quat, from_none], self.inertia_orientation
+        )
+        result["linearVelocity"] = from_union(
+            [from_vec, from_none], self.linear_velocity
+        )
+        result["angularVelocity"] = from_union(
+            [from_vec, from_none], self.angular_velocity
+        )
+        result["gravityFactor"] = from_union(
+            [from_float, from_none], self.gravity_factor
+        )
         return result
 
     @staticmethod
@@ -298,15 +386,35 @@ class RigidBody(gltfProperty):
         if obj == None:
             return None
         result = RigidBody()
-        result.is_kinematic = from_union([from_bool, from_none], obj.get('isKinematic'))
-        result.inverse_mass = from_union([from_float, from_none], obj.get('inverseMass'))
-        result.center_of_mass = from_union([lambda x: Vector(from_list(from_float, x)), from_none], obj.get('centerOfMass'))
-        result.inverse_inertia_tensor = from_union([lambda x: Vector(from_list(from_float, x)), from_none], obj.get('inverseInertiaTensor'))
-        result.inertia_orientation = from_union([lambda x: Quaternion(from_list(from_float, x)), from_none], obj.get('inertiaRotation'))
-        result.linear_velocity = from_union([lambda x: Vector(from_list(from_float, x)), from_none], obj.get('linearVelocity'))
-        result.angular_velocity = from_union([lambda x: Vector(from_list(from_float, x)), from_none], obj.get('angularVelocity'))
-        result.gravity_factor = from_union([from_float, from_none], obj.get('gravityFactor'))
+        result.is_kinematic = from_union([from_bool, from_none], obj.get("isKinematic"))
+        result.inverse_mass = from_union(
+            [from_float, from_none], obj.get("inverseMass")
+        )
+        result.center_of_mass = from_union(
+            [lambda x: Vector(from_list(from_float, x)), from_none],
+            obj.get("centerOfMass"),
+        )
+        result.inverse_inertia_tensor = from_union(
+            [lambda x: Vector(from_list(from_float, x)), from_none],
+            obj.get("inverseInertiaTensor"),
+        )
+        result.inertia_orientation = from_union(
+            [lambda x: Quaternion(from_list(from_float, x)), from_none],
+            obj.get("inertiaRotation"),
+        )
+        result.linear_velocity = from_union(
+            [lambda x: Vector(from_list(from_float, x)), from_none],
+            obj.get("linearVelocity"),
+        )
+        result.angular_velocity = from_union(
+            [lambda x: Vector(from_list(from_float, x)), from_none],
+            obj.get("angularVelocity"),
+        )
+        result.gravity_factor = from_union(
+            [from_float, from_none], obj.get("gravityFactor")
+        )
         return result
+
 
 class JointLimit(gltfProperty):
     def __init__(self, *args, **kwargs):
@@ -317,7 +425,7 @@ class JointLimit(gltfProperty):
         self.max_limit = None
 
     @staticmethod
-    def Linear(axes, minLimit = None, maxLimit = None):
+    def Linear(axes, minLimit=None, maxLimit=None):
         result = JointLimit()
         result.linear_axes = axes
         result.min_limit = minLimit
@@ -325,7 +433,7 @@ class JointLimit(gltfProperty):
         return result
 
     @staticmethod
-    def Angular(axes, minLimit = None, maxLimit = None):
+    def Angular(axes, minLimit=None, maxLimit=None):
         result = JointLimit()
         result.angular_axes = axes
         result.min_limit = minLimit
@@ -334,38 +442,53 @@ class JointLimit(gltfProperty):
 
     def to_dict(self):
         result = super().to_dict()
-        result['linearAxes'] = from_union([lambda x: from_list(from_int, x), from_none], self.linear_axes)
-        result['angularAxes'] = from_union([lambda x: from_list(from_int, x), from_none], self.angular_axes)
-        result['min'] = from_union([from_float, from_none], self.min_limit)
-        result['max'] = from_union([from_float, from_none], self.max_limit)
+        result["linearAxes"] = from_union(
+            [lambda x: from_list(from_int, x), from_none], self.linear_axes
+        )
+        result["angularAxes"] = from_union(
+            [lambda x: from_list(from_int, x), from_none], self.angular_axes
+        )
+        result["min"] = from_union([from_float, from_none], self.min_limit)
+        result["max"] = from_union([from_float, from_none], self.max_limit)
         return result
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
         limit = JointLimit()
-        limit.angular_axes = from_union([lambda x: from_list(from_int, x), from_none], obj.get('angularAxes'))
-        limit.linear_axes = from_union([lambda x: from_list(from_int, x), from_none], obj.get('linearAxes'))
-        limit.min_limit = from_union([from_float, from_none], obj.get('min'))
-        limit.max_limit = from_union([from_float, from_none], obj.get('max'))
+        limit.angular_axes = from_union(
+            [lambda x: from_list(from_int, x), from_none], obj.get("angularAxes")
+        )
+        limit.linear_axes = from_union(
+            [lambda x: from_list(from_int, x), from_none], obj.get("linearAxes")
+        )
+        limit.min_limit = from_union([from_float, from_none], obj.get("min"))
+        limit.max_limit = from_union([from_float, from_none], obj.get("max"))
         return limit
 
+
 class JointLimitSet(gltfProperty):
-    def __init__(self, limits = None):
+    def __init__(self, limits=None):
         super().__init__()
         self.joint_limits = limits if limits != None else list()
 
     def to_dict(self):
         result = super().to_dict()
-        result['limits'] = from_union([lambda x: from_list(lambda l: to_class(JointLimit, l), x), from_none], self.joint_limits)
+        result["limits"] = from_union(
+            [lambda x: from_list(lambda l: to_class(JointLimit, l), x), from_none],
+            self.joint_limits,
+        )
         return result
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
         result = JointLimitSet()
-        result.joint_limits = from_union([lambda x: from_list(JointLimit.from_dict, x), from_none], obj.get('limits'))
+        result.joint_limits = from_union(
+            [lambda x: from_list(JointLimit.from_dict, x), from_none], obj.get("limits")
+        )
         return result
+
 
 class Joint(gltfProperty):
     def __init__(self, *args, **kwargs):
@@ -378,7 +501,9 @@ class Joint(gltfProperty):
         result = super().to_dict()
         result["connectedNode"] = self.connected_node
         result["jointLimits"] = self.joint_limits
-        result["enableCollision"] = from_union([from_bool, from_none], self.enable_collision)
+        result["enableCollision"] = from_union(
+            [from_bool, from_none], self.enable_collision
+        )
         return result
 
     @staticmethod
@@ -387,9 +512,13 @@ class Joint(gltfProperty):
         if obj == None:
             return None
         joint = Joint()
-        joint.connected_node = from_union([from_int, from_none], obj.get('connectedNode'))
-        joint.joint_limits = from_union([from_int, from_none], obj.get('jointLimits'))
-        joint.enable_collision = from_union([from_bool, from_none], obj.get('enableCollision'))
+        joint.connected_node = from_union(
+            [from_int, from_none], obj.get("connectedNode")
+        )
+        joint.joint_limits = from_union([from_int, from_none], obj.get("jointLimits"))
+        joint.enable_collision = from_union(
+            [from_bool, from_none], obj.get("enableCollision")
+        )
         return joint
 
 
@@ -403,21 +532,32 @@ class RigidBodiesNodeExtension(gltfProperty):
 
     def to_dict(self):
         result = super().to_dict()
-        result["rigidBody"] = from_union([lambda x: to_class(RigidBody, x), from_none], self.rigid_body)
+        result["rigidBody"] = from_union(
+            [lambda x: to_class(RigidBody, x), from_none], self.rigid_body
+        )
         result["collider"] = self.collider
         result["physicsMaterial"] = self.physics_material
-        result["joint"] = from_union([lambda x: to_class(Joint, x), from_none], self.joint)
+        result["joint"] = from_union(
+            [lambda x: to_class(Joint, x), from_none], self.joint
+        )
         return result
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        result = RigidBodiesNodeExtension() #<todo.eoin Need to handle extensions/extras in all from_dict() methods
-        result.rigid_body = from_union([RigidBody.from_dict, from_none], obj.get("rigidBody"))
-        result.collider = from_union([from_int, from_none], obj.get('collider'))
-        result.physicsMaterial = from_union([from_int, from_none], obj.get('physicsMaterial'))
+        result = (
+            RigidBodiesNodeExtension()
+        )  # <todo.eoin Need to handle extensions/extras in all from_dict() methods
+        result.rigid_body = from_union(
+            [RigidBody.from_dict, from_none], obj.get("rigidBody")
+        )
+        result.collider = from_union([from_int, from_none], obj.get("collider"))
+        result.physicsMaterial = from_union(
+            [from_int, from_none], obj.get("physicsMaterial")
+        )
         result.joint = from_union([Joint.from_dict, from_none], obj.get("joint"))
         return result
+
 
 class RigidBodiesGlTFExtension:
     def __init__(self, *args, **kwargs):
@@ -432,42 +572,16 @@ class RigidBodiesGlTFExtension:
     def from_dict(obj):
         assert isinstance(obj, dict)
         result = RigidBodiesGlTFExtension()
-        result.physics_materials = from_union([lambda x: from_list(PhysicsMaterial.from_dict, x), from_none], obj.get('physicsMaterials'))
-        result.physics_joint_limits = from_union([lambda x: from_list(JointLimitSet.from_dict, x), from_none], obj.get('physicsJointLimits'))
+        result.physics_materials = from_union(
+            [lambda x: from_list(PhysicsMaterial.from_dict, x), from_none],
+            obj.get("physicsMaterials"),
+        )
+        result.physics_joint_limits = from_union(
+            [lambda x: from_list(JointLimitSet.from_dict, x), from_none],
+            obj.get("physicsJointLimits"),
+        )
         return result
 
-
-class MSFTPhysicsSceneAdditionalSettings(bpy.types.PropertyGroup):
-    draw_velocity: bpy.props.BoolProperty(name='Draw Velocities', default=False)
-    draw_mass_props: bpy.props.BoolProperty(name='Draw Mass Properties', default=False)
-
-class MSFTPhysicsBodyAdditionalSettings(bpy.types.PropertyGroup):
-    is_trigger: bpy.props.BoolProperty(name='Is Trigger', default=False)
-    gravity_factor: bpy.props.FloatProperty(name='Gravity Factor', default=1.0)
-    linear_velocity: bpy.props.FloatVectorProperty(name='Linear Velocity', default=(0,0,0))
-    angular_velocity: bpy.props.FloatVectorProperty(name='Angular Velocity', default=(0,0,0))
-
-    enable_inertia_override: bpy.props.BoolProperty(name='Override Inertia Tensor', default=False)
-    inertia_major_axis: bpy.props.FloatVectorProperty(name='Inertia Major Axis', default=(1,1,1))
-    inertia_orientation: bpy.props.FloatVectorProperty(name='Inertia Orientation', subtype='EULER')
-
-    enable_com_override: bpy.props.BoolProperty(name='Override Center of Mass', default=False)
-    center_of_mass: bpy.props.FloatVectorProperty(name='Center of Mass', default=(0,0,0))
-
-    friction_combine: bpy.props.EnumProperty(name='Friction Combine mode', items=physics_material_combine_types)
-    restitution_combine: bpy.props.EnumProperty(name='Restitution Combine mode', items=physics_material_combine_types)
-
-class MSFTPhysicsExporterProperties(bpy.types.PropertyGroup):
-    enabled: bpy.props.BoolProperty(
-        name="VRAGE MSFT_Physics", #bl_info['name'],
-        description='Include rigid body data in the exported glTF file.',
-        default=True)
-
-class MSFTPhysicsImporterProperties(bpy.types.PropertyGroup):
-    enabled: bpy.props.BoolProperty(
-        name="VRAGE MSFT_Physics", #bl_info['name'],
-        description='Include rigid body data from the imported glTF file.',
-        default=True)
 
 class MSFTPhysicsSettingsViewportRenderHelper:
     def __init__(self, *args, **kwargs):
@@ -500,9 +614,11 @@ class MSFTPhysicsSettingsViewportRenderHelper:
     def draw_velocity(self, obj):
         linVel = Vector(obj.msft_physics_extra_props.linear_velocity)
         angVel = Vector(obj.msft_physics_extra_props.angular_velocity)
-        coords = [(obj.matrix_world @ Vector((0, 0, 0))).to_tuple(),
-                  (obj.matrix_world @ linVel).to_tuple()]
-        batch = batch_for_shader(self.shader, 'LINES', {"pos": coords})
+        coords = [
+            (obj.matrix_world @ Vector((0, 0, 0))).to_tuple(),
+            (obj.matrix_world @ linVel).to_tuple(),
+        ]
+        batch = batch_for_shader(self.shader, "LINES", {"pos": coords})
         self.shader.uniform_float("color", (1, 1, 0, 1))
         batch.draw(self.shader)
 
@@ -519,7 +635,7 @@ class MSFTPhysicsSettingsViewportRenderHelper:
             sampleLocal = avQ @ (avPerp * t) + linVel * t
             coords.append((obj.matrix_world @ sampleLocal))
             coords.append(coords[-1])
-        batch = batch_for_shader(self.shader, 'LINES', {"pos": coords})
+        batch = batch_for_shader(self.shader, "LINES", {"pos": coords})
         self.shader.uniform_float("color", (1, 1, 0, 1))
         batch.draw(self.shader)
 
@@ -527,24 +643,40 @@ class MSFTPhysicsSettingsViewportRenderHelper:
         if obj.msft_physics_extra_props.enable_com_override:
             com = Vector(obj.msft_physics_extra_props.center_of_mass)
 
-            star = [Vector((-1,  0,  0)), Vector((1, 0, 0)),
-                    Vector(( 0, -1,  0)), Vector((0, 1, 0)),
-                    Vector(( 0,  0, -1)), Vector((0, 0, 1))]
+            star = [
+                Vector((-1, 0, 0)),
+                Vector((1, 0, 0)),
+                Vector((0, -1, 0)),
+                Vector((0, 1, 0)),
+                Vector((0, 0, -1)),
+                Vector((0, 0, 1)),
+            ]
             star = [obj.matrix_world @ com + p * 0.1 for p in star]
-            batch = batch_for_shader(self.shader, 'LINES', {"pos": star})
+            batch = batch_for_shader(self.shader, "LINES", {"pos": star})
             self.shader.uniform_float("color", (1, 0, 1, 1))
             batch.draw(self.shader)
         else:
             com = Vector((0.0, 0.0, 0.0))
 
-        unitBox = [Vector((-1, -1, -1)), Vector((-1, -1,  1)),
-                   Vector((-1,  1, -1)), Vector((-1,  1,  1)),
-                   Vector(( 1, -1, -1)), Vector(( 1, -1,  1)),
-                   Vector(( 1,  1, -1)), Vector(( 1,  1,  1))]
+        unitBox = [
+            Vector((-1, -1, -1)),
+            Vector((-1, -1, 1)),
+            Vector((-1, 1, -1)),
+            Vector((-1, 1, 1)),
+            Vector((1, -1, -1)),
+            Vector((1, -1, 1)),
+            Vector((1, 1, -1)),
+            Vector((1, 1, 1)),
+        ]
         if obj.msft_physics_extra_props.enable_inertia_override:
             itLocal = Vector(obj.msft_physics_extra_props.inertia_major_axis)
-            itOrientation = Euler(obj.msft_physics_extra_props.inertia_orientation).to_quaternion()
-            itBox = [obj.matrix_world @ (com + itOrientation @ (v * itLocal)) for v in unitBox]
+            itOrientation = Euler(
+                obj.msft_physics_extra_props.inertia_orientation
+            ).to_quaternion()
+            itBox = [
+                obj.matrix_world @ (com + itOrientation @ (v * itLocal))
+                for v in unitBox
+            ]
             itBox.append(itBox[0])
             itBox.append(itBox[2])
             itBox.append(itBox[1])
@@ -564,93 +696,22 @@ class MSFTPhysicsSettingsViewportRenderHelper:
             itBox.append(itBox[3])
             itBox.append(itBox[7])
 
-            batch = batch_for_shader(self.shader, 'LINES', {"pos": itBox})
+            batch = batch_for_shader(self.shader, "LINES", {"pos": itBox})
             self.shader.uniform_float("color", (1, 0, 1, 1))
             batch.draw(self.shader)
 
+
+# endregion
 viewportRenderHelper = MSFTPhysicsSettingsViewportRenderHelper()
 
-class MSFTPhysicsSettingsViewportPanel(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = 'MSFT Physics'
-    bl_label = 'MSFT Physics'
-    bl_idname = "OBJECT_PT_MSFT_Physics_Viewport_Extensions"
+draw_handler = None  # TODO Clean this up
 
-    @classmethod
-    def poll(cls, context):
-        if context.object and context.object.rigid_body:
-            return True
-        return None
-
-    def draw(self, context):
-        layout = self.layout
-        row = layout.row()
-        row.prop(context.scene.msft_physics_scene_viewer_props, 'draw_velocity')
-        row = layout.row()
-        row.prop(context.scene.msft_physics_scene_viewer_props, 'draw_mass_props')
-
-
-class MSFTPhysicsSettingsPanel(bpy.types.Panel):
-    bl_label = 'MSFT Physics Extensions'
-    bl_idname = "OBJECT_PT_MSFT_Physics_Extensions"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = 'physics'
-
-    @classmethod
-    def poll(cls, context):
-        if context.object and context.object.rigid_body:
-            return True
-        return None
-
-    def draw(self, context):
-        layout = self.layout
-
-        obj = context.object
-
-        #todo.eoin This feels a little different to Blender's usual UI.
-        # Figure out how to add nice boxes/expanding headers/margins. (Seems to be nested Panels?)
-        row = layout.row()
-        row.prop(obj.msft_physics_extra_props, 'is_trigger')
-        row = layout.row()
-        row.prop(obj.msft_physics_extra_props, 'gravity_factor')
-        row = layout.row()
-        row.prop(obj.msft_physics_extra_props, 'linear_velocity')
-        row = layout.row()
-        row.prop(obj.msft_physics_extra_props, 'angular_velocity')
-
-        row = layout.row()
-        row.prop(obj.msft_physics_extra_props, 'enable_inertia_override')
-        row = layout.row()
-        row.enabled = obj.msft_physics_extra_props.enable_inertia_override
-        row.prop(obj.msft_physics_extra_props, 'inertia_major_axis')
-        row = layout.row()
-        row.enabled = obj.msft_physics_extra_props.enable_inertia_override
-        row.prop(obj.msft_physics_extra_props, 'inertia_orientation')
-
-        row = layout.row()
-        row.prop(obj.msft_physics_extra_props, 'enable_com_override')
-        row = layout.row()
-        row.prop(obj.msft_physics_extra_props, 'center_of_mass')
-        row.enabled = obj.msft_physics_extra_props.enable_com_override
-
-        row = layout.row()
-        row.prop(obj.msft_physics_extra_props, 'friction_combine')
-        row = layout.row()
-        row.prop(obj.msft_physics_extra_props, 'restitution_combine')
-
-draw_handler = None #<todo.eoin Clean this up
-
-# region: register unregister
-from io_scene_gltf2 import exporter_extension_layout_draw, importer_extension_layout_draw
-
-MSFT_Physics_classes = (
-    MSFTPhysicsExporterProperties, 
-    MSFTPhysicsImporterProperties,
-    MSFTPhysicsSceneAdditionalSettings,
-    MSFTPhysicsBodyAdditionalSettings,
+# noinspection PyUnresolvedReferences
+from io_scene_gltf2 import (
+    exporter_extension_layout_draw,
+    importer_extension_layout_draw,
 )
+
 
 def draw_export(context, layout):
     exportProps = bpy.context.scene.msft_physics_exporter_props
@@ -658,47 +719,63 @@ def draw_export(context, layout):
     col.use_property_split = False
     col.prop(exportProps, "enabled")
 
+
 def draw_import(context, layout):
     importProps = bpy.context.scene.msft_physics_importer_props
     col = layout.column()
     col.use_property_split = False
     col.prop(importProps, "enabled")
 
-def MSFT_Physics_register():
-    for cls in MSFT_Physics_classes:
-        bpy.utils.register_class(cls)
-    bpy.types.Scene.msft_physics_exporter_props = bpy.props.PointerProperty(type=MSFTPhysicsExporterProperties)
-    bpy.types.Scene.msft_physics_importer_props = bpy.props.PointerProperty(type=MSFTPhysicsImporterProperties)
-    bpy.types.Scene.msft_physics_scene_viewer_props = bpy.props.PointerProperty(type=MSFTPhysicsSceneAdditionalSettings)
-    bpy.types.Object.msft_physics_extra_props = bpy.props.PointerProperty(type=MSFTPhysicsBodyAdditionalSettings)
-    exporter_extension_layout_draw['MSFT_Physics'] = draw_export
-    importer_extension_layout_draw['MSFT_Physics'] = draw_import
 
+# noinspection PyNoneFunctionAssignment
+def MSFT_Physics_register():
+    bpy.types.Scene.msft_physics_exporter_props = bpy.props.PointerProperty(
+        type=MSFT_Properties.PG_MSFTPhysicsExporterProperties
+    )
+    bpy.types.Scene.msft_physics_importer_props = bpy.props.PointerProperty(
+        type=MSFT_Properties.PG_MSFTPhysicsImporterProperties
+    )
+    bpy.types.Scene.msft_physics_scene_viewer_props = bpy.props.PointerProperty(
+        type=MSFT_Properties.PG_MSFTPhysicsSceneAdditionalSettings
+    )
+    bpy.types.Object.msft_physics_extra_props = bpy.props.PointerProperty(
+        type=MSFT_Properties.PG_MSFTPhysicsBodyAdditionalSettings
+    )
+    exporter_extension_layout_draw["MSFT_Physics"] = draw_export
+    importer_extension_layout_draw["MSFT_Physics"] = draw_import
+
+
+# noinspection PyUnresolvedReferences
 def MSFT_Physics_unregister():
-    del importer_extension_layout_draw['MSFT_Physics']
-    del exporter_extension_layout_draw['MSFT_Physics']
+    del importer_extension_layout_draw["MSFT_Physics"]
+    del exporter_extension_layout_draw["MSFT_Physics"]
     del bpy.types.Object.msft_physics_extra_props
     del bpy.types.Scene.msft_physics_scene_viewer_props
     del bpy.types.Scene.msft_physics_importer_props
     del bpy.types.Scene.msft_physics_exporter_props
-    for cls in reversed(MSFT_Physics_classes):
-        bpy.utils.unregister_class(cls)
+
 
 # endregion
 
-class JointFixup():
+
+class JointFixup:
     """Helper class to store information about how to connect a joint"""
+
     def __init__(self, joint, connected_idx):
         self.joint = joint
         self.connected_idx = connected_idx
 
+
 class glTF2ImportUserExtension:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # We need to wait until we create the gltf2UserExtension to import the gltf2 modules
-        # Otherwise, it may fail because the gltf2 may not be loaded yet
+
+        # noinspection PyUnresolvedReferences
         from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
+
+        # noinspection PyUnresolvedReferences
         from io_scene_gltf2.io.com.gltf2_io_extensions import ChildOfRootExtension
+
         self.Extension = Extension
         self.ChildOfRootExtension = ChildOfRootExtension
 
@@ -750,7 +827,7 @@ class glTF2ImportUserExtension:
 
         self.vnode_to_blender[vnode] = blender_object
 
-        #try:
+        # try:
         ext = gltf_node.extensions[rigidBody_Extension_Name]
         # except:
         #     return
@@ -759,37 +836,36 @@ class glTF2ImportUserExtension:
 
         if nodeExt.collider != None or nodeExt.rigid_body != None:
             if not blender_object.rigid_body:
-                #<todo.eoin This is the only way I've found to add a rigid body to a node
+                # <todo.eoin This is the only way I've found to add a rigid body to a node
                 # There might be a cleaner way.
                 prev_active_objects = bpy.context.view_layer.objects.active
                 bpy.context.view_layer.objects.active = blender_object
                 bpy.ops.rigidbody.object_add()
                 bpy.context.view_layer.objects.active = prev_active_objects
-            blender_object.rigid_body.enabled = False # Static by default
-            blender_object.rigid_body.collision_shape = 'COMPOUND'
+            blender_object.rigid_body.enabled = False  # Static by default
+            blender_object.rigid_body.collision_shape = "COMPOUND"
 
             if nodeExt.collider != None:
                 collider = self.cgExt.colliders[nodeExt.collider]
                 if collider.sphere != None:
-                    blender_object.rigid_body.collision_shape = 'SPHERE'
+                    blender_object.rigid_body.collision_shape = "SPHERE"
                 if collider.box != None:
-                    blender_object.rigid_body.collision_shape = 'BOX'
+                    blender_object.rigid_body.collision_shape = "BOX"
 
-                #<todo.eoin Might need to undo node transform for these?
+                # <todo.eoin Might need to undo node transform for these?
                 if collider.capsule != None:
-                    blender_object.rigid_body.collision_shape = 'CAPSULE'
+                    blender_object.rigid_body.collision_shape = "CAPSULE"
                 if collider.cylinder != None:
-                    blender_object.rigid_body.collision_shape = 'CYLINDER'
+                    blender_object.rigid_body.collision_shape = "CYLINDER"
 
-                #<todo.eoin Figure out if we can hook in a different mesh
+                # <todo.eoin Figure out if we can hook in a different mesh
                 # other than the one associated with this node
                 if collider.convex != None:
-                    blender_object.rigid_body.collision_shape = 'CONVEX_HULL'
+                    blender_object.rigid_body.collision_shape = "CONVEX_HULL"
                 if collider.trimesh != None:
-                    blender_object.rigid_body.collision_shape = 'MESH'
+                    blender_object.rigid_body.collision_shape = "MESH"
 
-                #XXX collision system
-
+                # XXX collision system
 
             if nodeExt.physicsMaterial != None:
                 mat = self.rbExt.physics_materials[nodeExt.physicsMaterial]
@@ -798,9 +874,13 @@ class glTF2ImportUserExtension:
                 if mat.restitution != None:
                     blender_object.rigid_body.restitution = mat.restitution
                 if mat.friction_combine != None:
-                    blender_object.msft_physics_extra_props.friction_combine = mat.friction_combine
+                    blender_object.msft_physics_extra_props.friction_combine = (
+                        mat.friction_combine
+                    )
                 if mat.restitution_combine != None:
-                    blender_object.msft_physics_extra_props.restitution_combine = mat.restitution_combine
+                    blender_object.msft_physics_extra_props.restitution_combine = (
+                        mat.restitution_combine
+                    )
 
         if nodeExt.rigid_body:
             blender_object.rigid_body.enabled = True
@@ -809,7 +889,9 @@ class glTF2ImportUserExtension:
             if nodeExt.rigid_body.is_kinematic != None:
                 blender_object.rigid_body.is_kinematic = nodeExt.rigid_body.is_kinematic
             if nodeExt.rigid_body.center_of_mass != None:
-                blender_object.msft_physics_extra_props.center_of_mass = nodeExt.rigid_body.center_of_mass
+                blender_object.msft_physics_extra_props.center_of_mass = (
+                    nodeExt.rigid_body.center_of_mass
+                )
                 blender_object.msft_physics_extra_props.enable_com_override = True
             if nodeExt.rigid_body.inverse_inertia_tensor != None:
                 it = inv_vec(nodeExt.rigid_body.inverse_inertia_tensor)
@@ -820,26 +902,35 @@ class glTF2ImportUserExtension:
                 blender_object.msft_physics_extra_props.inertia_orientation = io
                 blender_object.msft_physics_extra_props.enable_inertia_override = True
             if nodeExt.rigid_body.linear_velocity != None:
-                blender_object.msft_physics_extra_props.linear_velocity = nodeExt.rigid_body.linear_velocity
+                blender_object.msft_physics_extra_props.linear_velocity = (
+                    nodeExt.rigid_body.linear_velocity
+                )
             if nodeExt.rigid_body.angular_velocity != None:
-                blender_object.msft_physics_extra_props.angular_velocity = nodeExt.rigid_body.angular_velocity
+                blender_object.msft_physics_extra_props.angular_velocity = (
+                    nodeExt.rigid_body.angular_velocity
+                )
             if nodeExt.rigid_body.gravity_factor != None:
-                blender_object.msft_physics_extra_props.gravity_factor = nodeExt.rigid_body.gravity_factor
+                blender_object.msft_physics_extra_props.gravity_factor = (
+                    nodeExt.rigid_body.gravity_factor
+                )
 
         if nodeExt.joint:
-            #<todo.eoin Same as adding rigid body; might be a cleaner way.
+            # <todo.eoin Same as adding rigid body; might be a cleaner way.
             prev_active_objects = bpy.context.view_layer.objects.active
             bpy.context.view_layer.objects.active = blender_object
             bpy.ops.rigidbody.constraint_add()
             bpy.context.view_layer.objects.active = prev_active_objects
 
-
-            self.joints_to_fixup.append(JointFixup(blender_object, nodeExt.joint.connected_node))
+            self.joints_to_fixup.append(
+                JointFixup(blender_object, nodeExt.joint.connected_node)
+            )
 
             joint = blender_object.rigid_body_constraint
-            joint.type = 'GENERIC'
+            joint.type = "GENERIC"
             if nodeExt.joint.enable_collision != None:
-                blender_object.rigid_body_constraint.disable_collisions = not nodeExt.joint.enable_collision
+                blender_object.rigid_body_constraint.disable_collisions = (
+                    not nodeExt.joint.enable_collision
+                )
 
             limitSet = self.rbExt.physics_joint_limits[nodeExt.joint.joint_limits]
             for limit in limitSet.joint_limits:
@@ -875,13 +966,19 @@ class glTF2ImportUserExtension:
                             joint.limit_ang_z_lower = minLimit
                             joint.limit_ang_z_upper = maxLimit
 
+
 class glTF2ExportUserExtension:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # We need to wait until we create the gltf2UserExtension to import the gltf2 modules
         # Otherwise, it may fail because the gltf2 may not be loaded yet
+
+        # noinspection PyUnresolvedReferences
         from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
+
+        # noinspection PyUnresolvedReferences
         from io_scene_gltf2.io.com.gltf2_io_extensions import ChildOfRootExtension
+
         self.Extension = Extension
         self.ChildOfRootExtension = ChildOfRootExtension
         self.properties = bpy.context.scene.msft_physics_exporter_props
@@ -903,14 +1000,19 @@ class glTF2ExportUserExtension:
             physicsRootExtension = self.Extension(
                 name=rigidBody_Extension_Name,
                 extension=self.gltfExt,
-                required=extension_is_required)
+                required=extension_is_required,
+            )
             gltf2_plan.extensions[rigidBody_Extension_Name] = physicsRootExtension
 
-        if not collisionGeom_Extension_Name in gltf2_plan.extensions and self.cgGltfExt.should_export():
+        if (
+            not collisionGeom_Extension_Name in gltf2_plan.extensions
+            and self.cgGltfExt.should_export()
+        ):
             cgRootExtension = self.Extension(
-                name = collisionGeom_Extension_Name,
-                extension = self.cgGltfExt,
-                required = extension_is_required)
+                name=collisionGeom_Extension_Name,
+                extension=self.cgGltfExt,
+                required=extension_is_required,
+            )
             gltf2_plan.extensions[collisionGeom_Extension_Name] = cgRootExtension
 
     def gather_scene_hook(self, gltf2_scene, blender_scene, export_settings):
@@ -923,7 +1025,9 @@ class glTF2ExportUserExtension:
         #
         for joint_node in self.blenderJointObjects:
             gltf2_object = self.blenderNodeToGltfNode[joint_node]
-            jointData = self._generateJointData(joint_node, gltf2_object, export_settings)
+            jointData = self._generateJointData(
+                joint_node, gltf2_object, export_settings
+            )
             # Blender allows a joint to be specified at any point in the scene
             # tree, and the joint points to bodyA/bodyB while the glTF_Physics
             # spec expects that the joint is attached to a child node of bodyA
@@ -946,20 +1050,28 @@ class glTF2ExportUserExtension:
             # jointInA/B are the pivots in the space of their connected node
             gltf_B = self.blenderNodeToGltfNode[bodyB]
 
-            jointInB = self._constructNode('jointSpaceB',
-                    jointFromBodyB.to_translation(),
-                     jointFromBodyB.to_quaternion(), export_settings)
+            jointInB = self._constructNode(
+                "jointSpaceB",
+                jointFromBodyB.to_translation(),
+                jointFromBodyB.to_quaternion(),
+                export_settings,
+            )
             gltf_B.children.append(jointInB)
             jointData.connected_node = jointInB
 
             gltf_A = self.blenderNodeToGltfNode[bodyA]
-            jointInA = self._constructNode('jointSpaceA', jointFromBodyA.to_translation(),
-                    jointFromBodyA.to_quaternion(), export_settings)
-            #<todo.eoin Don't stomp exising extension:
+            jointInA = self._constructNode(
+                "jointSpaceA",
+                jointFromBodyA.to_translation(),
+                jointFromBodyA.to_quaternion(),
+                export_settings,
+            )
+            # <todo.eoin Don't stomp exising extension:
             jointInA.extensions[rigidBody_Extension_Name] = self.Extension(
                 name=rigidBody_Extension_Name,
-                extension={'joint': jointData.to_dict()},
-                required=extension_is_required)
+                extension={"joint": jointData.to_dict()},
+                required=extension_is_required,
+            )
             gltf_A.children.append(jointInA)
 
     def gather_node_hook(self, gltf2_object, blender_object, export_settings):
@@ -967,13 +1079,17 @@ class glTF2ExportUserExtension:
             self.blenderNodeToGltfNode[blender_object] = gltf2_object
 
             if gltf2_object.extensions is None:
-                #<todo.eoin Pretty sure this is never hit, due to export_user_extensions()
+                # <todo.eoin Pretty sure this is never hit, due to export_user_extensions()
                 gltf2_object.extensions = {}
 
             extension_data = RigidBodiesNodeExtension()
             # Blender has no way to specify a shape without a rigid body. Instead, a single shape is
             # specified by being a child of a body whose collider type is "Compound Parent"
-            if blender_object.rigid_body and blender_object.rigid_body.enabled and not self._isPartOfCompound(blender_object):
+            if (
+                blender_object.rigid_body
+                and blender_object.rigid_body.enabled
+                and not self._isPartOfCompound(blender_object)
+            ):
                 rb = blender_object.rigid_body
                 extraProps = blender_object.msft_physics_extra_props
 
@@ -986,10 +1102,14 @@ class glTF2ExportUserExtension:
                 if extraProps.gravity_factor != 1.0:
                     rigid_body.gravity_factor = extraProps.gravity_factor
 
-                lv = self.__convert_swizzle_location(Vector(extraProps.linear_velocity), export_settings)
+                lv = self.__convert_swizzle_location(
+                    Vector(extraProps.linear_velocity), export_settings
+                )
                 if lv.length_squared != 0:
                     rigid_body.linear_velocity = lv
-                av = self.__convert_swizzle_location(Vector(extraProps.angular_velocity), export_settings)
+                av = self.__convert_swizzle_location(
+                    Vector(extraProps.angular_velocity), export_settings
+                )
                 if av.length_squared != 0:
                     rigid_body.angular_velocity = av
 
@@ -997,17 +1117,28 @@ class glTF2ExportUserExtension:
                     rigid_body.center_of_mass = Vector(extraProps.center_of_mass)
 
                 if extraProps.enable_inertia_override:
-                    rigid_body.inverse_inertia_tensor = inv_vec(self.__convert_swizzle_scale(extraProps.inertia_major_axis, export_settings))
-                    rigid_body.inertia_orientation = Euler(blender_object.msft_physics_extra_props.inertia_orientation).to_quaternion()
+                    rigid_body.inverse_inertia_tensor = inv_vec(
+                        self.__convert_swizzle_scale(
+                            extraProps.inertia_major_axis, export_settings
+                        )
+                    )
+                    rigid_body.inertia_orientation = Euler(
+                        blender_object.msft_physics_extra_props.inertia_orientation
+                    ).to_quaternion()
 
                 extension_data.rigid_body = rigid_body
 
             if blender_object.rigid_body:
-                collider_data = self._generateColliderData(blender_object, gltf2_object, export_settings)
+                collider_data = self._generateColliderData(
+                    blender_object, gltf2_object, export_settings
+                )
                 if collider_data:
-                    extension_data.collider = self.ChildOfRootExtension(name = collisionGeom_Extension_Name,
-                                                                        path = ['colliders'], required = extension_is_required,
-                                                                        extension = collider_data.to_dict())
+                    extension_data.collider = self.ChildOfRootExtension(
+                        name=collisionGeom_Extension_Name,
+                        path=["colliders"],
+                        required=extension_is_required,
+                        extension=collider_data.to_dict(),
+                    )
 
                 extraProps = blender_object.msft_physics_extra_props
                 if not extraProps.is_trigger:
@@ -1016,32 +1147,44 @@ class glTF2ExportUserExtension:
                     mat.dynamic_friction = blender_object.rigid_body.friction
                     mat.restitution = blender_object.rigid_body.restitution
 
-                    if extraProps.friction_combine != physics_material_combine_types[0][0]:
+                    if (
+                        extraProps.friction_combine
+                        != MSFT_Properties.physics_material_combine_types[0][0]
+                    ):
                         mat.friction_combine = extraProps.friction_combine
-                    if extraProps.restitution_combine != physics_material_combine_types[0][0]:
+                    if (
+                        extraProps.restitution_combine
+                        != MSFT_Properties.physics_material_combine_types[0][0]
+                    ):
                         mat.restitution_combine = extraProps.restitution_combine
 
                     extension_data.physics_material = self.ChildOfRootExtension(
-                            name = rigidBody_Extension_Name, path = ['physicsMaterials'],
-                            extension = mat.to_dict(), required = extension_is_required)
+                        name=rigidBody_Extension_Name,
+                        path=["physicsMaterials"],
+                        extension=mat.to_dict(),
+                        required=extension_is_required,
+                    )
 
             if blender_object.rigid_body_constraint:
                 # Because joints refer to another node in the scene, which may not be processed yet,
                 # We'll just save all the joint objects we see and process them later.
                 self.blenderJointObjects.append(blender_object)
 
-            if blender_object.rigid_body != None or blender_object.rigid_body_constraint != None:
+            if (
+                blender_object.rigid_body != None
+                or blender_object.rigid_body_constraint != None
+            ):
                 gltf2_object.extensions[rigidBody_Extension_Name] = self.Extension(
                     name=rigidBody_Extension_Name,
                     extension=extension_data.to_dict(),
-                    required=extension_is_required
+                    required=extension_is_required,
                 )
 
     def _isPartOfCompound(self, node):
-        cur = node.parent;
+        cur = node.parent
         while cur:
             if cur.rigid_body != None:
-                if cur.rigid_body.collision_shape == 'COMPOUND':
+                if cur.rigid_body.collision_shape == "COMPOUND":
                     return True
             cur = cur.parent
         return False
@@ -1053,18 +1196,18 @@ class glTF2ExportUserExtension:
         if not joint.disable_collisions:
             jointData.enable_collision = not joint.disable_collisions
 
-        if export_settings['gltf_yup']:
+        if export_settings["gltf_yup"]:
             X, Y, Z = (0, 2, 1)
         else:
             X, Y, Z = (0, 1, 2)
 
         limitSet = JointLimitSet()
-        if joint.type == 'FIXED':
+        if joint.type == "FIXED":
             limitSet.joint_limits.append(JointLimit.Linear([X, Y, Z], 0, 0))
             limitSet.joint_limits.append(JointLimit.Angular([X, Y, Z], 0, 0))
-        elif joint.type == 'POINT':
+        elif joint.type == "POINT":
             limitSet.joint_limits.append(JointLimit.Linear([X, Y, Z], 0, 0))
-        elif joint.type == 'HINGE':
+        elif joint.type == "HINGE":
             limitSet.joint_limits.append(JointLimit.Linear([X, Y, Z], 0, 0))
 
             # Blender always specifies hinge about Z
@@ -1075,7 +1218,7 @@ class glTF2ExportUserExtension:
                 angLimit.min_limit = joint.limit_ang_z_lower
                 angLimit.max_limit = joint.limit_ang_z_upper
                 limitSet.joint_limits.append(angLimit)
-        elif joint.type == 'SLIDER':
+        elif joint.type == "SLIDER":
             limitSet.joint_limits.append(JointLimit.Angular([X, Y, Z], 0, 0))
 
             # Blender always specifies slider limit along X
@@ -1086,7 +1229,7 @@ class glTF2ExportUserExtension:
                 linLimit.min_limit = joint.limit_lin_x_lower
                 linLimit.max_limit = joint.limit_lin_x_upper
                 limitSet.joint_limits.append(linLimit)
-        elif joint.type == 'PISTON':
+        elif joint.type == "PISTON":
             # Blender always specifies slider limit along/around X
             limitSet.joint_limits.append(JointLimit.Angular([Y, Z], 0, 0))
             limitSet.joint_limits.append(JointLimit.Linear([Y, Z], 0, 0))
@@ -1101,7 +1244,7 @@ class glTF2ExportUserExtension:
                 angLimit.min_limit = joint.limit_ang_x_lower
                 angLimit.max_limit = joint.limit_ang_x_upper
                 limitSet.joint_limits.append(angLimit)
-        elif joint.type in ['GENERIC', 'GENERIC_SPRING']:
+        elif joint.type in ["GENERIC", "GENERIC_SPRING"]:
             # Appears that Blender always uses 1D constraints
             if joint.use_limit_lin_x:
                 linLimit = JointLimit.Linear([X])
@@ -1110,7 +1253,7 @@ class glTF2ExportUserExtension:
                 limitSet.joint_limits.append(linLimit)
             if joint.use_limit_lin_y:
                 linLimit = JointLimit.Linear([Y])
-                if export_settings['gltf_yup']:
+                if export_settings["gltf_yup"]:
                     linLimit.min_limit = -joint.limit_lin_y_upper
                     linLimit.max_limit = -joint.limit_lin_y_lower
                 else:
@@ -1130,7 +1273,7 @@ class glTF2ExportUserExtension:
                 limitSet.joint_limits.append(angLimit)
             if joint.use_limit_ang_y:
                 angLimit = JointLimit.Angular([Y])
-                if export_settings['gltf_yup']:
+                if export_settings["gltf_yup"]:
                     angLimit.min_limit = -joint.limit_ang_y_upper
                     angLimit.max_limit = -joint.limit_ang_y_lower
                 else:
@@ -1144,12 +1287,15 @@ class glTF2ExportUserExtension:
                 limitSet.joint_limits.append(angLimit)
 
         jointData.joint_limits = self.ChildOfRootExtension(
-                            name = rigidBody_Extension_Name, path = ['physicsJointLimits'],
-                            extension = limitSet, required = extension_is_required)
+            name=rigidBody_Extension_Name,
+            path=["physicsJointLimits"],
+            extension=limitSet,
+            required=extension_is_required,
+        )
         return jointData
 
     def _generateColliderData(self, node, glNode, export_settings):
-        if node.rigid_body == None or node.rigid_body.collision_shape == 'COMPOUND':
+        if node.rigid_body == None or node.rigid_body.collision_shape == "COMPOUND":
             return None
         collider = Collider()
 
@@ -1157,56 +1303,91 @@ class glTF2ExportUserExtension:
         #    * Children of COMPOUND_PARENT don't have a UI to configure filtering
         #    * An objects' "membership" is always equal to it's "collides with"
         #    * Seems there's no "user friendly" names
-        collisionSystems = ["System_%i" % i for (i,enabled) in enumerate(node.rigid_body.collision_collections) if enabled]
+        collisionSystems = [
+            "System_%i" % i
+            for (i, enabled) in enumerate(node.rigid_body.collision_collections)
+            if enabled
+        ]
         collider.collision_systems = collisionSystems
         collider.collide_with_systems = collisionSystems
 
-        if (node.rigid_body.collision_shape == 'CONE'
-                or node.rigid_body.collision_shape == 'CONVEX_HULL'):
+        if (
+            node.rigid_body.collision_shape == "CONE"
+            or node.rigid_body.collision_shape == "CONVEX_HULL"
+        ):
             collider.convex = Collider.Convex(glNode.mesh)
-        elif node.rigid_body.collision_shape == 'MESH':
+        elif node.rigid_body.collision_shape == "MESH":
             collider.trimesh = Collider.TriMesh(glNode.mesh)
         else:
             # If the shape is a geometric primitive, we may have to apply modifiers
             # to see the final geometry. (glNode has already had modifiers applied)
             with self._accessMeshData(node, export_settings) as meshData:
-                if node.rigid_body.collision_shape == 'SPHERE':
+                if node.rigid_body.collision_shape == "SPHERE":
                     maxRR = 0
                     for v in meshData.vertices:
                         maxRR = max(maxRR, v.co.length_squared)
-                    collider.sphere = Collider.Sphere(radius = maxRR ** 0.5)
-                elif node.rigid_body.collision_shape == 'BOX':
-                    maxHalfExtent = [0,0,0]
+                    collider.sphere = Collider.Sphere(radius=maxRR**0.5)
+                elif node.rigid_body.collision_shape == "BOX":
+                    maxHalfExtent = [0, 0, 0]
                     for v in meshData.vertices:
-                        maxHalfExtent = [max(a,abs(b)) for a,b in zip(maxHalfExtent, v.co)]
-                    collider.box = Collider.Box(size = self.__convert_swizzle_scale(maxHalfExtent, export_settings) * 2)
-                #<TODO.eoin.Blender Cone shape feels underspecified? We need to do a proper calculation here
-                elif (node.rigid_body.collision_shape == 'CAPSULE' or
-                        node.rigid_body.collision_shape == 'CYLINDER'):
-                    capsuleAxis = Vector((0,0,1)) # Use blender's up axis, instead of glTF (and transform later)
+                        maxHalfExtent = [
+                            max(a, abs(b)) for a, b in zip(maxHalfExtent, v.co)
+                        ]
+                    collider.box = Collider.Box(
+                        size=self.__convert_swizzle_scale(
+                            maxHalfExtent, export_settings
+                        )
+                        * 2
+                    )
+                # <TODO.eoin.Blender Cone shape feels underspecified? We need to do a proper calculation here
+                elif (
+                    node.rigid_body.collision_shape == "CAPSULE"
+                    or node.rigid_body.collision_shape == "CYLINDER"
+                ):
+                    capsuleAxis = Vector(
+                        (0, 0, 1)
+                    )  # Use blender's up axis, instead of glTF (and transform later)
                     maxHalfHeight = 0
                     maxRadiusSquared = 0
                     for v in meshData.vertices:
                         maxHalfHeight = max(maxHalfHeight, abs(v.co.dot(capsuleAxis)))
-                        radiusSquared = (v.co - capsuleAxis * v.co.dot(capsuleAxis)).length_squared
+                        radiusSquared = (
+                            v.co - capsuleAxis * v.co.dot(capsuleAxis)
+                        ).length_squared
                         maxRadiusSquared = max(maxRadiusSquared, radiusSquared)
                     height = maxHalfHeight * 2
-                    radius = maxRadiusSquared ** 0.5
-                    if node.rigid_body.collision_shape == 'CAPSULE':
-                        collider.capsule = Collider.Capsule(height = height, radius = radius)
+                    radius = maxRadiusSquared**0.5
+                    if node.rigid_body.collision_shape == "CAPSULE":
+                        collider.capsule = Collider.Capsule(
+                            height=height, radius=radius
+                        )
                     else:
-                        collider.cylinder = Collider.Cylinder(height = height, radius = radius)
+                        collider.cylinder = Collider.Cylinder(
+                            height=height, radius=radius
+                        )
 
-                    if not export_settings['gltf_yup']:
+                    if not export_settings["gltf_yup"]:
                         # Add an additional node to align the object, so the shape is oriented correctly when constructed along +Y
-                        collider_alignment = self._constructNode('physicsAlignmentNode',
-                                Vector((0,0,0)), Quaternion((halfSqrt2, 0, 0, halfSqrt2)), export_settings);
+                        collider_alignment = self._constructNode(
+                            "physicsAlignmentNode",
+                            Vector((0, 0, 0)),
+                            Quaternion((halfSqrt2, 0, 0, halfSqrt2)),
+                            export_settings,
+                        )
                         rbExt = RigidBodiesNodeExtension()
-                        rbExt.collider = self.ChildOfRootExtension(name = collisionGeom_Extension_Name,
-                                                                   path = ["colliders"], required = extension_is_required,
-                                                                   extension = collider.to_dict())
-                        colliderAlignment.extensions[rigidBody_Extension_Name] = self.Extension(
-                            name=rigidBody_Extension_Name, extension = rbExt, required = extension_is_required)
+                        rbExt.collider = self.ChildOfRootExtension(
+                            name=collisionGeom_Extension_Name,
+                            path=["colliders"],
+                            required=extension_is_required,
+                            extension=collider.to_dict(),
+                        )
+                        colliderAlignment.extensions[rigidBody_Extension_Name] = (
+                            self.Extension(
+                                name=rigidBody_Extension_Name,
+                                extension=rbExt,
+                                required=extension_is_required,
+                            )
+                        )
                         glNode.children.append(colliderAlignment)
                         # We've added the collider data to a child of glNode;
                         # return None so that the glNode doesn't get collider data,
@@ -1215,6 +1396,7 @@ class glTF2ExportUserExtension:
 
     def _accessMeshData(self, node, export_settings):
         """RAII-style function to access mesh data with modifiers attached"""
+
         class ScopedMesh:
             def __init__(self, node, export_settings):
                 self.node = node
@@ -1222,29 +1404,45 @@ class glTF2ExportUserExtension:
                 self.modifiedNode = None
 
             def __enter__(self):
-                if self.export_settings['gltf_apply']:
+                if self.export_settings["gltf_apply"]:
                     depsGraph = bpy.context.evaluated_depsgraph_get()
                     self.modifiedNode = node.evaluated_get(depsGraph)
-                    return self.modifiedNode.to_mesh(preserve_all_data_layers=True, depsgraph=depsGraph)
+                    return self.modifiedNode.to_mesh(
+                        preserve_all_data_layers=True, depsgraph=depsGraph
+                    )
                 else:
                     return self.node.data
 
             def __exit__(self, *args):
                 if self.modifiedNode:
                     self.modifiedNode.to_mesh_clear()
+
         return ScopedMesh(node, export_settings)
 
     def _constructNode(self, name, translation, rotation, export_settings):
-        return Node(name = name,
-                translation = [x for x in self.__convert_swizzle_location(translation, export_settings)],
-                rotation = self._serializeQuaternion(self.__convert_swizzle_rotation(rotation, export_settings)),
-                matrix = [], camera = None, children = [], extensions = {}, extras = None, mesh = None,
-                scale = None, skin = None, weights = None)
+        return Node(
+            name=name,
+            translation=[
+                x for x in self.__convert_swizzle_location(translation, export_settings)
+            ],
+            rotation=self._serializeQuaternion(
+                self.__convert_swizzle_rotation(rotation, export_settings)
+            ),
+            matrix=[],
+            camera=None,
+            children=[],
+            extensions={},
+            extras=None,
+            mesh=None,
+            scale=None,
+            skin=None,
+            weights=None,
+        )
 
     # Copy-pasted from the glTF exporter; are they accessible some other way, without having to duplicate?
     def __convert_swizzle_location(self, loc, export_settings):
         """Convert a location from Blender coordinate system to glTF coordinate system."""
-        if export_settings['gltf_yup']:
+        if export_settings["gltf_yup"]:
             return Vector((loc[0], loc[2], -loc[1]))
         else:
             return Vector((loc[0], loc[1], loc[2]))
@@ -1252,7 +1450,7 @@ class glTF2ExportUserExtension:
     # Copy-pasted from the glTF exporter; are they accessible some other way, without having to duplicate?
     def __convert_swizzle_scale(self, scale, export_settings):
         """Convert a scale from Blender coordinate system to glTF coordinate system."""
-        if export_settings['gltf_yup']:
+        if export_settings["gltf_yup"]:
             return Vector((scale[0], scale[2], scale[1]))
         else:
             return Vector((scale[0], scale[1], scale[2]))
@@ -1263,7 +1461,7 @@ class glTF2ExportUserExtension:
         Convert a quaternion rotation from Blender coordinate system to glTF coordinate system.
         'w' is still at first position.
         """
-        if export_settings['gltf_yup']:
+        if export_settings["gltf_yup"]:
             return Quaternion((rot[0], rot[1], rot[3], -rot[2]))
         else:
             return Quaternion((rot[0], rot[1], rot[2], rot[3]))

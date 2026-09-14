@@ -1,0 +1,9 @@
+[submodule "Blender-VRAGE-Tools/modules/ALXModuleManager"]
+	path = Blender-VRAGE-Tools/modules/ALXModuleManager
+	url = https://github.com/Valerie-Bosco/ALXModuleManager.git
+[submodule "Blender-VRAGE-Tools/modules/ALXAddonUpdater"]
+	path = Blender-VRAGE-Tools/modules/ALXAddonUpdater
+	url = https://github.com/Valerie-Bosco/ALXAddonUpdater.git
+[submodule "Blender-VRAGE-Tools/modules/ALXCompatibilityLayer"]
+	path = Blender-VRAGE-Tools/modules/ALXCompatibilityLayer
+	url = https://github.com/Valerie-Bosco/ALXCompatibilityLayer.git

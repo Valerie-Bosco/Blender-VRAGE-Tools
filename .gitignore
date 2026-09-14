@@ -1,3 +1,6 @@
-# Ignore pycache
-*__pycache__/
-*.zip
+.idea
+*/temp/
+/temp
+
+*/Blender-VRAGE-Tools.zip
+/Blender-VRAGE-Tools.zip
