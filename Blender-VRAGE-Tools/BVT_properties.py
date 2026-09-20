@@ -84,9 +84,9 @@ class BVT_Section(bpy.types.PropertyGroup):
         name_old = self.get("name", "Section")
 
         if (
-                (context := bpy.context) is not None
-                and (scene := context.scene) is not None
-                and (scene_objects := scene.objects) is not None
+            (context := bpy.context) is not None
+            and (scene := context.scene) is not None
+            and (scene_objects := scene.objects) is not None
         ):
 
             for obj in scene_objects:
