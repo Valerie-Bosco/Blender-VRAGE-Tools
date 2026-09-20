@@ -45,8 +45,8 @@ addon_updater = Alx_Addon_Updater(
     bl_info=bl_info,
     engine="Github",
     engine_user_name="Valerie-Bosco",
-    engine_repo_name="XNALara-io-Tools",
-    manual_download_website="https://github.com/Valerie-Bosco/XNALara-io-Tools/releases/tag/main_branch_latest",
+    engine_repo_name="Blender-VRAGE-Tools",
+    manual_download_website="https://github.com/Valerie-Bosco/Blender-VRAGE-Tools/releases/",
 )
 
 from . import BVT_properties
