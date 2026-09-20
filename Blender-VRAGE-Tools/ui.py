@@ -91,6 +91,8 @@ class VRT_PT_BlockProperties(Panel):
     bl_options = {"DEFAULT_CLOSED"}
     bl_order = 1
 
+    module_manager_order = 1
+
     @classmethod
     def poll(cls, context):
         return True
@@ -99,7 +101,8 @@ class VRT_PT_BlockProperties(Panel):
         layout = self.layout
 
     def draw(self, context):
-        layout = self.layout
+        if (layout := self.layout) is not None:
+            pass
 
 
 class VRT_PT_BlockProperties_subpanel_fractures(Panel):
@@ -170,7 +173,7 @@ class VRT_MT_Menu_subpanel_fractures_more_options(Menu):
         )
 
 
-class VRT_UL_sections(bpy.types.UIList):  # List item class
+class VRT_UL_sections(bpy.types.UIList):
 
     def draw_item(
         self, context, layout, data, item, icon, active_data, active_propname
@@ -283,6 +286,8 @@ class VRT_PT_Materials(Panel):
     bl_region_type = "UI"
     bl_options = {"DEFAULT_CLOSED"}
     bl_order = 3
+
+    module_manager_order = 1
 
     @classmethod
     def poll(cls, context):

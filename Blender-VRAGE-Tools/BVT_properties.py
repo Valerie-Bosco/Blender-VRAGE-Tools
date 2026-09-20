@@ -7,6 +7,8 @@ from .interface import update_functions
 class VRT_Notification(bpy.types.PropertyGroup):
     """Holder for issue information"""
 
+    module_manager_order = 1
+
     timestamp: bpy.props.FloatProperty(subtype="TIME", unit="TIME")  # type: ignore
 
     issue_type: bpy.props.EnumProperty(  # type: ignore
