@@ -27,7 +27,7 @@ from .operators import *
 from .view_layer.view_layer import *
 
 bl_info = {
-    "name": "VRAGE Tools",
+    "name": "Blender-VRAGE-Tools",
     "author": "Valerie Bosco[House Arhal], Keen Software House[Original Developer]",
     "description": "A Blender Add-on to streamline and simplify the creation of 3D assets for Space Engineers 2",
     "blender": (3, 6, 0),
@@ -53,21 +53,20 @@ from . import BVT_properties
 
 
 def register():
-    MSFT_Physics_register()
-
     ALX_module_manager.register_modules()
     addon_updater.register_addon_updater(mute=True)
+
+    MSFT_Physics_register()
     BVT_properties.register_properties()
 
     bpy.app.handlers.load_post.append(file_load_handler)
 
 
 def unregister():
-    MSFT_Physics_unregister()
-
     ALX_module_manager.unregister_modules()
     addon_updater.unregister_addon_updater()
 
+    MSFT_Physics_unregister()
     BVT_properties.unregister_properties()
 
     bpy.app.handlers.load_post.remove(file_load_handler)
@@ -82,5 +81,3 @@ def file_load_handler(dummy):
     bpy.context.scene.msft_physics_exporter_props.enabled = (
         False  # Disable havok extension. It can mess with glTF imports
     )
-
-    bpy.ops.wm.vrt_check_update("INVOKE_DEFAULT")

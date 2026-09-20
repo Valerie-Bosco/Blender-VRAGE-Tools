@@ -59,6 +59,8 @@ class VRT_Text(bpy.types.PropertyGroup):
 class BVT_Fracture(bpy.types.PropertyGroup):
     """Holder for VRT fracture properties"""
 
+    module_manager_order = 1
+
     name: bpy.props.StringProperty(  # type: ignore
         name="Name", default="Fracture 1"
     )  # type: ignore
@@ -71,6 +73,8 @@ class BVT_Fracture(bpy.types.PropertyGroup):
 class BVT_Section(bpy.types.PropertyGroup):
     """Holder for VRT section properties"""
 
+    module_manager_order = 1
+
     def get_name(self):
         return self.get("name", "Section")
 
@@ -78,9 +82,9 @@ class BVT_Section(bpy.types.PropertyGroup):
         name_old = self.get("name", "Section")
 
         if (
-            (context := bpy.context) is not None
-            and (scene := context.scene) is not None
-            and (scene_objects := scene.objects) is not None
+                (context := bpy.context) is not None
+                and (scene := context.scene) is not None
+                and (scene_objects := scene.objects) is not None
         ):
 
             for obj in scene_objects:
@@ -114,9 +118,15 @@ class BVT_ViewLayer(bpy.types.PropertyGroup):
     )
 
 
-# noinspection PyNoneFunctionAssignment
 class BVT_Scene(bpy.types.PropertyGroup):
     """Holder for VRT Scene properties"""
+
+    export_name: bpy.props.StringProperty(
+        name="Block Base Name",
+        description='Base name of block to export (e.g. "CargoContainer")',
+    )
+
+    sections_list: bpy.props.CollectionProperty(type=BVT_Section)
 
     version: bpy.props.IntProperty(  # type: ignore
         default=1
@@ -146,21 +156,14 @@ class BVT_Scene(bpy.types.PropertyGroup):
 
     fractures_list_active_index: bpy.props.IntProperty()  # type: ignore
 
-    sections_list: bpy.props.CollectionProperty(type=BVT_Section)  # type: ignore
-
-    sections_list_active_index: bpy.props.IntProperty()  # type: ignore
-
-    export_name: bpy.props.StringProperty(  # type: ignore
-        name="Block Base Name",
-        description='Base name of block to export (e.g. "CargoContainer")',
-    )
-
     export_directory: bpy.props.StringProperty(  # type: ignore
         name="Quick Export Directory",
         description='Root directory for exporting model. (parent directory of "NonFractured", "Fractured"...)',
         subtype="DIR_PATH",
         update=update_functions.update_export_path_ui,
     )
+
+    sections_list_active_index: bpy.props.IntProperty()  # type: ignore
 
     export_variant: bpy.props.EnumProperty(  # type: ignore
         items=[
@@ -192,14 +195,12 @@ class BVT_Scene(bpy.types.PropertyGroup):
     )  # type: ignore
 
 
-# noinspection PyNoneFunctionAssignment
 def register_properties():
     bpy.types.Scene.vrt = bpy.props.PointerProperty(type=BVT_Scene)
     bpy.types.ViewLayer.vrt = bpy.props.PointerProperty(type=BVT_ViewLayer)
     bpy.types.Text.vrt = bpy.props.PointerProperty(type=VRT_Text)
 
 
-# noinspection PyUnresolvedReferences
 def unregister_properties():
     del bpy.types.Text.vrt
     del bpy.types.ViewLayer.vrt
